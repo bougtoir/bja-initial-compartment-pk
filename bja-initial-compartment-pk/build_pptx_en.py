@@ -304,7 +304,7 @@ slide5 = prs.slides.add_slide(prs.slide_layouts[6])
 add_title_textbox(slide5, 'Table 1. Proposed Context-Sensitive Maximum Dose Framework\nfor Local Anaesthetics in Regional Anaesthesia',
                   Inches(0.5), Inches(0.2), Inches(12.3), Inches(0.8), font_size=20)
 
-rows = 5
+rows = 6
 cols = 4
 tbl_w = Inches(11.5)
 tbl_h = Inches(4.5)
@@ -327,6 +327,7 @@ data = [
     ['Partial block', 'Mixed\n(BPT + BRT / Plasma)', 'Intermediate', 'Standard dose limit applies'],
     ['Failed block\n(tissue misplacement)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high, early', 'Lower dose may be needed'],
     ['Intravascular injection', 'Plasma (V1)', 'Very high, immediate', 'Traditional IV limits apply'],
+    ['Epidural administration', 'Depot (multi-pathway)\nFat + dural transfer + vascular', 'Intermediate, delayed', 'Adequately approximated\nby depot model'],
 ]
 
 row_colors = [
@@ -334,6 +335,7 @@ row_colors = [
     LIGHT_ORANGE,
     LIGHT_RED,
     RGBColor(0xFF, 0xCD, 0xD2),
+    LIGHT_PURPLE,
 ]
 
 for i, h in enumerate(headers):
@@ -359,6 +361,10 @@ for r, row_data in enumerate(data):
         cell.fill.solid()
         cell.fill.fore_color.rgb = row_colors[r]
         cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+# Footnote about spinal exclusion
+add_textbox(slide5, 'Note: Spinal (intrathecal) anaesthesia was excluded from this framework due to unique CSF pharmacokinetics,\nsmall doses employed, and predominantly single-shot nature of the technique.',
+            Inches(0.9), Inches(6.0), Inches(11.5), Inches(0.7), font_size=10, color=GREY, align=PP_ALIGN.LEFT)
 
 # Save
 out = '/home/ubuntu/manuscript/BJA_Figures_English.pptx'

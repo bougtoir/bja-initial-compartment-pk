@@ -287,7 +287,7 @@ tbl_h = Inches(4.5)
 left = Inches(0.9)
 top = Inches(1.3)
 
-table_shape = slide5.shapes.add_table(5, 4, left, top, tbl_w, tbl_h)
+table_shape = slide5.shapes.add_table(6, 4, left, top, tbl_w, tbl_h)
 table = table_shape.table
 
 col_widths = [Inches(3.2), Inches(3.0), Inches(2.3), Inches(3.0)]
@@ -303,7 +303,7 @@ data = [
     ['\u8840\u7ba1\u5185\u6ce8\u5165', '\u8840\u6f3f\uff08V1\uff09', '\u975e\u5e38\u306b\u9ad8\u5024\u3001\n\u5373\u6642', '\u5f93\u6765\u306eIV\u6975\u91cf\n\u304c\u9069\u7528'],
 ]
 
-row_colors = [LIGHT_GREEN, LIGHT_ORANGE, LIGHT_RED, RGBColor(0xFF, 0xCD, 0xD2)]
+row_colors = [LIGHT_GREEN, LIGHT_ORANGE, LIGHT_RED, RGBColor(0xFF, 0xCD, 0xD2), LIGHT_PURPLE]
 
 for i, h in enumerate(headers):
     cell = table.cell(0, i)
@@ -328,6 +328,10 @@ for r, row_data in enumerate(data):
         cell.fill.solid()
         cell.fill.fore_color.rgb = row_colors[r]
         cell.vertical_anchor = MSO_ANCHOR.MIDDLE
+
+# Footnote about spinal exclusion
+add_textbox(slide5, '注：脊髄くも膜下麻酔（脊椎麻酔）はCSF薬物動態の独自性、少量投与、および主に単回\n投与である手技の性質から、本枠組みから除外した。',
+            Inches(0.9), Inches(6.0), Inches(11.5), Inches(0.7), font_size=10, color=GREY, align=PP_ALIGN.LEFT)
 
 # Save
 out = '/home/ubuntu/manuscript/BJA_Figures_Japanese.pptx'

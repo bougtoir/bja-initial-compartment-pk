@@ -120,6 +120,10 @@ add_para(
     'However, in regional anaesthesia, the drug is not administered intravenously. It is deposited into '
     'tissue\u2014perineural space, fascial planes, or epidural space\u2014where systemic absorption depends on local '
     'blood flow, tissue binding, and the physicochemical properties of both the drug and the tissue.7,8 '
+    'Notably, neuraxial techniques introduce additional pharmacokinetic complexity: epidural administration '
+    'involves simultaneous absorption via epidural fat, dural transfer into cerebrospinal fluid (CSF), and '
+    'vascular uptake, whilst intrathecal (spinal) administration deposits drug directly into the CSF with '
+    'unique distribution and absorption kinetics that differ from all peripheral routes. '
     'Recent work by De Cassai and colleagues, published in this journal, has advanced our understanding '
     'of local anaesthetic pharmacokinetics in fascial plane blocks, highlighting the roles of epinephrine, '
     'tissue vascularity, and fascial microanatomy in determining systemic absorption profiles.9 Similarly, '
@@ -391,7 +395,7 @@ add_para(
 )
 
 # Table 1
-table = doc.add_table(rows=5, cols=4)
+table = doc.add_table(rows=6, cols=4)
 table.style = 'Table Grid'
 headers = ['Scenario', 'Initial Compartment', 'Expected Cmax', 'Dose Adjustment']
 for i, h in enumerate(headers):
@@ -408,6 +412,7 @@ data = [
     ['Partial block', 'Mixed\n(BPT + BRT/Plasma)', 'Intermediate', 'Standard dose\nlimit applies'],
     ['Failed block\n(tissue misplacement)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high,\nearly', 'Lower dose\nmay be needed'],
     ['Intravascular injection', 'Plasma (V1)', 'Very high,\nimmediate', 'Traditional IV\nlimits apply'],
+    ['Epidural administration', 'Depot (multi-pathway)\nFat + dural transfer + vascular', 'Intermediate,\ndelayed', 'Adequately approximated\nby depot model'],
 ]
 for r, row_data in enumerate(data):
     for c, val in enumerate(row_data):
@@ -428,6 +433,53 @@ add_para(
     'frequent exceeding of traditional dose limits in regional practice.12 Third, it identifies the '
     'scenarios of genuine concern\u2014failed blocks and intravascular injection\u2014where adherence to '
     'conservative dose limits and vigilant monitoring are most important.'
+)
+
+# ===== EPIDURAL AND SPINAL CONSIDERATIONS =====
+add_heading_text('Considerations for neuraxial techniques: epidural and spinal anaesthesia', level=1)
+
+add_para(
+    'The framework presented above focuses primarily on peripheral nerve blocks and fascial plane blocks, '
+    'where the initial compartment can be reasonably approximated as either vessel-poor tissue (successful block) '
+    'or vessel-rich tissue/plasma (failed block). However, two neuraxial routes\u2014epidural and spinal '
+    '(intrathecal) administration\u2014deserve specific consideration, as their pharmacokinetics present '
+    'distinct challenges for compartmental modelling.'
+)
+
+add_para(
+    'Epidural administration of local anaesthetics involves drug deposition into the epidural space, '
+    'where absorption occurs via three parallel pathways: (i) distribution into epidural fat, which '
+    'acts as a local depot with slow release; (ii) transfer across the dura mater into the '
+    'cerebrospinal fluid (CSF), where it accesses spinal nerve roots to produce neural blockade; '
+    'and (iii) vascular absorption from the rich epidural venous plexus into the systemic '
+    'circulation.15,16 Importantly, this multi-pathway absorption can be well approximated by a '
+    'depot compartment model with first-order absorption kinetics (ka), analogous to the peripheral '
+    'block model described above. Population pharmacokinetic studies of epidural local anaesthetics '
+    'have successfully employed depot-augmented compartment models, validating this approach.20 '
+    'The depot model thus provides an adequate and practical framework for epidural administration '
+    'within the initial compartment paradigm proposed here. Epidural administration can be '
+    'considered as a depot-start scenario with absorption characteristics intermediate between '
+    'a successful fascial plane block (pure vessel-poor tissue) and a failed block (rapid '
+    'vascular uptake), reflecting the mixed nature of the epidural space. Although more '
+    'sophisticated multi-pathway models could further refine the simulation of the three '
+    'parallel absorption routes, the depot approximation is sufficient for clinical dose '
+    'guidance and integration into the proposed framework.'
+)
+
+add_para(
+    'Spinal (intrathecal) anaesthesia was not included in the primary analysis of this review. '
+    'Intrathecal administration deposits drug directly into the CSF, a unique pharmacokinetic '
+    'compartment that does not correspond to any of the four compartments in the current framework '
+    '(plasma, BRT, BPT, or depot). Drug distribution within the CSF is governed by factors such as '
+    'baricity, patient positioning, CSF volume, and spinal curvature, none of which are captured by '
+    'conventional compartmental models.16 Furthermore, spinal anaesthesia is almost exclusively '
+    'performed as a single-shot technique with small drug doses (e.g. bupivacaine 10\u201315 mg), '
+    'making systemic toxicity from intrathecal dosing alone exceedingly rare. For these reasons\u2014the '
+    'pharmacokinetic uniqueness of CSF distribution, the small doses employed, and the predominantly '
+    'single-shot nature of the technique\u2014we have deliberately excluded spinal anaesthesia from the '
+    'initial compartment framework. Extending the model to include a CSF compartment would add '
+    'considerable complexity without proportionate clinical benefit for the question of systemic '
+    'toxicity and maximum dose.'
 )
 
 # ===== CLINICAL IMPLICATIONS =====
@@ -461,9 +513,12 @@ add_para(
     'characterised. Block success is a spectrum rather than a binary state, and the proportion of drug '
     'deposited in vessel-poor versus vessel-rich tissue cannot be precisely determined clinically. '
     'Individual variation in tissue vascularity, protein binding, and hepatic clearance introduces '
-    'additional uncertainty. Nevertheless, we believe that acknowledging the fundamental dependence '
-    'of pharmacokinetics on the initial compartment, even imperfectly, represents a significant '
-    'advance over the current approach of ignoring it entirely.'
+    'additional uncertainty. As discussed above, epidural administration can be adequately '
+    'approximated by a depot compartment model despite its multi-pathway absorption, whilst '
+    'spinal anaesthesia was excluded from this framework due to its unique CSF '
+    'pharmacokinetics and the small doses employed. Nevertheless, we believe that acknowledging '
+    'the fundamental dependence of pharmacokinetics on the initial compartment, even imperfectly, '
+    'represents a significant advance over the current approach of ignoring it entirely.'
 )
 
 # ===== CONCLUSION =====
