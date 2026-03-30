@@ -325,7 +325,7 @@ header_colors = [RGBColor(0x26, 0x32, 0x38)] * 4
 data = [
     ['Successful block\n(perineural / fascial)', 'BPT (V3)\nVessel-poor tissue', 'Low, delayed', 'Higher dose may be safe'],
     ['Partial block', 'Mixed\n(BPT + BRT / Plasma)', 'Intermediate', 'Standard dose limit applies'],
-    ['Failed block\n(tissue misplacement)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high, early', 'Lower dose may be needed'],
+    ['Failed block\n(vessel-rich deposition)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high, early', 'Lower dose may be needed'],
     ['Intravascular injection', 'Plasma (V1)', 'Very high, immediate', 'Traditional IV limits apply'],
     ['Epidural administration', 'Depot (multi-pathway)\nFat + dural transfer + vascular', 'Intermediate, delayed', 'Adequately approximated\nby depot model'],
 ]

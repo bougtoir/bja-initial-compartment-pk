@@ -162,7 +162,7 @@ run.font.size = Pt(12)
 p = doc.add_paragraph()
 p.style = 'List Bullet'
 run = p.add_run(
-    'Scenario B (failed block or intravascular injection): The drug is inadvertently deposited into '
+    'Scenario B (failed block or intravascular injection): The drug is deposited into '
     'a vascular structure or highly perfused tissue (vessel-rich group). Systemic absorption is rapid, '
     'equivalent or near-equivalent to intravenous administration. Cmax is high and occurs early (low Tmax), '
     'potentially exceeding the threshold for central nervous system or cardiovascular toxicity.'
@@ -410,7 +410,7 @@ for i, h in enumerate(headers):
 data = [
     ['Successful block\n(perineural/fascial)', 'BPT (V3)\nVessel-poor tissue', 'Low, delayed', 'Higher dose\nmay be safe'],
     ['Partial block', 'Mixed\n(BPT + BRT/Plasma)', 'Intermediate', 'Standard dose\nlimit applies'],
-    ['Failed block\n(tissue misplacement)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high,\nearly', 'Lower dose\nmay be needed'],
+    ['Failed block\n(vessel-rich deposition)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high,\nearly', 'Lower dose\nmay be needed'],
     ['Intravascular injection', 'Plasma (V1)', 'Very high,\nimmediate', 'Traditional IV\nlimits apply'],
     ['Epidural administration', 'Depot (multi-pathway)\nFat + dural transfer + vascular', 'Intermediate,\ndelayed', 'Adequately approximated\nby depot model'],
 ]
@@ -431,7 +431,7 @@ add_para(
     'supports higher doses for fascial plane blocks where absorption is slow and predictable.9,11 '
     'Second, it provides a rational basis for the empirical observation that LAST is rare despite '
     'frequent exceeding of traditional dose limits in regional practice.12 Third, it identifies the '
-    'scenarios of genuine concern\u2014failed blocks and intravascular injection\u2014where adherence to '
+    'scenarios with rapid systemic absorption\u2014failed blocks and intravascular injection\u2014where adherence to '
     'conservative dose limits and vigilant monitoring are most important.'
 )
 
