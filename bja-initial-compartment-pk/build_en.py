@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Generate English BJA manuscript as .docx"""
+"""Generate English RAPM manuscript as .docx
+
+Target journal: Regional Anesthesia & Pain Medicine (RAPM)
+Article type: Narrative Review
+Language: American English
+"""
+import re
 from docx import Document
 from docx.shared import Inches, Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -24,13 +30,14 @@ pf.space_after = Pt(0)
 pf.space_before = Pt(0)
 pf.line_spacing = 2.0
 
-# Helper
+# Helper functions
 def add_heading_text(text, level=1):
     h = doc.add_heading(text, level=level)
     for run in h.runs:
         run.font.name = 'Times New Roman'
         run.font.color.rgb = RGBColor(0, 0, 0)
     return h
+
 
 def add_para(text, bold=False, italic=False, align=None):
     p = doc.add_paragraph()
@@ -43,523 +50,525 @@ def add_para(text, bold=False, italic=False, align=None):
     run.font.size = Pt(12)
     return p
 
+
+def add_para_with_refs(text):
+    """Add paragraph with superscript reference numbers.
+
+    Use {N} or {N-M} or {N,M} markers in text for citations.
+    """
+    p = doc.add_paragraph()
+    parts = re.split(r'(\{[^}]+\})', text)
+    for part in parts:
+        if part.startswith('{') and part.endswith('}'):
+            ref_text = part[1:-1]
+            run = p.add_run(ref_text)
+            run.font.superscript = True
+            run.font.name = 'Times New Roman'
+            run.font.size = Pt(12)
+        else:
+            run = p.add_run(part)
+            run.font.name = 'Times New Roman'
+            run.font.size = Pt(12)
+    return p
+
+
 # ===== TITLE PAGE =====
 add_para('')
 add_para('')
-p = add_para('Rethinking Maximum Dose Limits for Local Anaesthetics in Regional Anaesthesia:', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-p = add_para('The Case for Initial Compartment-Dependent Pharmacokinetic Modelling', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-add_para('')
-add_para('and a Call for Route-Adaptive PKPD Simulation in Anaesthesia Information Management Systems', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+p = add_para(
+    'Are Intravenous Pharmacokinetic Models Fit for Purpose in Regional Anesthesia?',
+    bold=True, align=WD_ALIGN_PARAGRAPH.CENTER
+)
+p = add_para(
+    'The Case for Route-Aware Simulation of Local Anesthetic Absorption',
+    bold=True, align=WD_ALIGN_PARAGRAPH.CENTER
+)
 add_para('')
 add_para('')
 
 add_para('Article type: Narrative Review', italic=True, align=WD_ALIGN_PARAGRAPH.CENTER)
 add_para('')
-add_para('[Author names to be inserted]', align=WD_ALIGN_PARAGRAPH.CENTER)
-add_para('[Affiliations to be inserted]', align=WD_ALIGN_PARAGRAPH.CENTER)
+add_para('[Author name to be inserted]', align=WD_ALIGN_PARAGRAPH.CENTER)
+add_para('[Affiliation to be inserted]', align=WD_ALIGN_PARAGRAPH.CENTER)
 add_para('')
 add_para('Corresponding author:', bold=True)
 add_para('[Name, Department, Institution, Address, Email]')
 add_para('')
-add_para('Word count: ~4800 words (main text)')
-add_para('References: 50')
-add_para('Figures: 4')
-add_para('Tables: 1')
+add_para('Word count: approximately 4200 words (main text)')
+add_para('References: 33')
+add_para('Figures: 3')
+add_para('Tables: 0')
 add_para('')
 
 # Keywords
-add_para('Keywords: local anaesthetic systemic toxicity; pharmacokinetic modelling; regional anaesthesia; physiologically based pharmacokinetics; compartment model; anaesthesia information management system; maximum recommended dose', italic=True)
+add_para(
+    'Keywords: local anesthetic systemic toxicity; pharmacokinetic modeling; '
+    'regional anesthesia; physiologically based pharmacokinetics; absorption; '
+    'maximum recommended dose; route of administration',
+    italic=True
+)
 
 doc.add_page_break()
 
-# ===== SUMMARY =====
-add_heading_text('Summary', level=1)
+# ===== ABSTRACT =====
+add_heading_text('Abstract', level=1)
 
-summary_text = (
-    'Current maximum recommended doses for local anaesthetics are derived from pharmacokinetic models '
-    'that assume intravenous administration, where drugs are deposited directly into the central plasma '
-    'compartment. However, in regional anaesthesia, the initial site of drug deposition differs fundamentally '
-    'depending on block success: a successful perineural or fascial plane block deposits drug into vessel-poor '
-    'tissue (slow systemic absorption), whereas a failed or partially failed block may result in drug deposition '
-    'into vessel-rich tissue or direct intravascular injection (rapid systemic absorption). This discrepancy in '
-    'the initial pharmacokinetic compartment has profound implications for peak plasma concentration and, '
-    'consequently, the risk of local anaesthetic systemic toxicity. We review the limitations of conventional '
-    'three-compartment models for regional anaesthesia dosing, examine the potential of physiologically based '
-    'pharmacokinetic platforms such as PK-Sim and MoBi to simulate route-dependent pharmacokinetics, and '
-    'propose a framework for context-sensitive maximum dose recommendations. Furthermore, we argue that '
-    'pharmacokinetic-pharmacodynamic simulation modules embedded in modern anaesthesia information '
-    'management systems should incorporate route-of-administration logic, enabling real-time, '
-    'compartment-appropriate dose guidance for both intravenous and regional anaesthesia techniques.'
+add_para_with_refs(
+    'Maximum recommended doses for local anesthetics were derived from pharmacokinetic '
+    'studies involving intravenous or subcutaneous administration, where drug enters the '
+    'central plasma compartment directly. In regional anesthesia, however, local anesthetics '
+    'are deposited into tissues\u2014fascial planes, perineural spaces, or the epidural '
+    'space\u2014where systemic absorption is governed by tissue-specific blood flow, binding, '
+    'and physicochemical properties. The resulting plasma concentration\u2013time profiles '
+    'differ fundamentally from those predicted by intravenous-derived three-compartment '
+    'models. Population pharmacokinetic studies consistently demonstrate slower absorption '
+    '(lower ka), delayed time to peak concentration (Tmax), and lower peak concentrations '
+    '(Cmax) after regional blocks compared with intravenous bolus administration. Despite '
+    'this evidence, pharmacokinetic simulations embedded in clinical decision support '
+    'tools and dose-tracking systems continue to apply intravenous-derived parameters to '
+    'regional routes, potentially generating misleading plasma concentration predictions. '
+    'In this narrative review, I examine the evidence for route-dependent absorption of '
+    'local anesthetics, explain why intravenous-derived models are pharmacokinetically '
+    'inappropriate for regional anesthesia, and discuss how physiologically based '
+    'pharmacokinetic (PBPK) platforms such as PK-Sim and MoBi could provide '
+    'route-aware simulations. I emphasize that this review does not advocate changing '
+    'current maximum dose recommendations; rather, it argues that the pharmacokinetic '
+    'models used to understand and predict local anesthetic behavior in regional '
+    'anesthesia must account for the route of administration.'
 )
-add_para(summary_text)
 
 doc.add_page_break()
 
 # ===== INTRODUCTION =====
 add_heading_text('Introduction', level=1)
 
-add_para(
-    'Local anaesthetic systemic toxicity (LAST) remains one of the most feared complications of regional '
-    'anaesthesia. Maximum recommended doses for local anaesthetics, traditionally expressed as mg kg\u207b\u00b9, '
-    'were established decades ago, largely on the basis of pharmacokinetic studies involving intravenous '
-    'administration or subcutaneous infiltration.1,2 These dose limits implicitly assume that the drug enters '
-    'the systemic circulation via the central (plasma) compartment, as occurs with intravenous injection.'
+add_para_with_refs(
+    'Local anesthetic systemic toxicity (LAST) remains a serious complication of regional '
+    'anesthesia, and maximum recommended doses serve as a critical safety guardrail.{1,2} '
+    'These dose limits, traditionally expressed as mg/kg, were established decades ago on '
+    'the basis of pharmacokinetic data from intravenous and subcutaneous administration '
+    'studies.{3,4} The implicit pharmacokinetic assumption underlying these limits is that '
+    'drug enters the central plasma compartment rapidly\u2014an assumption valid for '
+    'intravenous injection but not necessarily for tissue-based deposition in regional '
+    'anesthesia.'
 )
 
-add_para(
-    'The three-compartment mammillary model, widely used in anaesthetic pharmacology, describes drug '
-    'distribution from the central compartment (V1, plasma) to a rapidly equilibrating peripheral compartment '
-    '(V2, vessel-rich tissues or BRT) and a slowly equilibrating peripheral compartment (V3, vessel-poor '
-    'tissues or BPT), with elimination from the central compartment.3,4 This model underpins target-controlled '
-    'infusion systems (e.g. Marsh, Schnider, Eleveld models for propofol) and is the foundation of '
-    'pharmacokinetic-pharmacodynamic (PKPD) displays in modern anaesthesia information management '
-    'systems (AIMS).5,6'
+add_para_with_refs(
+    'The three-compartment mammillary model widely used in anesthetic pharmacology '
+    'describes drug distribution from the central compartment (V1, plasma) to a rapidly '
+    'equilibrating peripheral compartment (V2, vessel-rich tissues) and a slowly '
+    'equilibrating peripheral compartment (V3, vessel-poor tissues), with elimination '
+    'from the central compartment.{5,6} This model underpins target-controlled infusion '
+    'systems and pharmacokinetic displays in modern anesthesia information management '
+    'systems (AIMS).{7,8} Critically, it assumes that drug input occurs at V1.'
 )
 
-add_para(
-    'However, in regional anaesthesia, the drug is not administered intravenously. It is deposited into '
-    'tissue\u2014perineural space, fascial planes, or epidural space\u2014where systemic absorption depends on local '
-    'blood flow, tissue binding, and the physicochemical properties of both the drug and the tissue.7,8 '
-    'Notably, neuraxial techniques introduce additional pharmacokinetic complexity: epidural administration '
-    'involves simultaneous absorption via epidural fat, dural transfer into cerebrospinal fluid (CSF), and '
-    'vascular uptake, whilst intrathecal (spinal) administration deposits drug directly into the CSF with '
-    'unique distribution and absorption kinetics that differ from all peripheral routes. '
-    'Recent work by De Cassai and colleagues, published in this journal, has advanced our understanding '
-    'of local anaesthetic pharmacokinetics in fascial plane blocks, highlighting the roles of epinephrine, '
-    'tissue vascularity, and fascial microanatomy in determining systemic absorption profiles.9 Similarly, '
-    'Schwenk and colleagues have drawn attention to the emergence of lidocaine as a persistent cause of '
-    'LAST-related mortality.10'
+add_para_with_refs(
+    'In regional anesthesia, local anesthetics are deposited into tissue\u2014perineural '
+    'spaces, fascial planes, or the epidural space\u2014where systemic absorption depends '
+    'on local blood flow, tissue binding, drug lipophilicity, and the presence or absence '
+    'of vasoconstrictors.{9,10} Recent pharmacokinetic studies have demonstrated that '
+    'absorption profiles after regional blocks differ markedly from intravenous '
+    'administration, with slower absorption rates, lower peak plasma concentrations, and '
+    'delayed times to peak.{11-13} De Cassai and colleagues have advanced understanding '
+    'of fascial plane block pharmacokinetics, highlighting the roles of epinephrine and '
+    'tissue vascularity in determining absorption profiles.{14} Schwenk and colleagues '
+    'have drawn attention to lidocaine as a persistent cause of LAST-related '
+    'mortality.{15}'
 )
 
-add_para(
-    'Despite these advances, a fundamental question has not been adequately addressed: how does the '
-    'initial site of drug deposition\u2014the starting compartment\u2014influence peak plasma concentration and '
-    'therefore the margin of safety? We contend that the answer to this question is critical to any meaningful '
-    'discussion of maximum dose limits in regional anaesthesia, and that current dose recommendations are '
-    'inadequate because they fail to account for this variable.'
+add_para_with_refs(
+    'Despite this growing evidence base, a fundamental question remains underexplored: '
+    'if the pharmacokinetic profile of local anesthetics after regional administration '
+    'differs substantially from that after intravenous injection, can plasma concentration '
+    'predictions derived from intravenous models be trusted when applied to regional '
+    'routes? This question has immediate clinical relevance. In scenarios such as '
+    'multisite blocks for polytrauma or bilateral fascial plane blocks, clinicians may '
+    'approach or exceed traditional dose limits without apparent toxicity\u2014an observation '
+    'that route-dependent absorption readily explains. However, the same mechanism that '
+    'accounts for this safety margin\u2014slow tissue absorption with delayed peak plasma '
+    'concentration\u2014simultaneously demands a longer observation period for LAST, because '
+    'the temporal window of maximum risk shifts later than intravenous models would '
+    'predict. Building on a framework initially described in a preprint,{33} this '
+    'narrative review examines the evidence that route of administration critically '
+    'determines local anesthetic absorption pharmacokinetics, explains why this has '
+    'implications for both dose safety and monitoring duration, and argues that the field '
+    'requires route-aware pharmacokinetic models to generate meaningful predictions '
+    'for regional anesthesia.'
 )
 
-# ===== THE PROBLEM =====
-add_heading_text('The initial compartment problem', level=1)
+# ===== HOW DOSE LIMITS WERE DERIVED =====
+add_heading_text('How current maximum dose recommendations were derived', level=1)
 
-add_para(
-    'Consider two clinical scenarios involving the same dose of a long-acting local anaesthetic '
-    '(e.g. bupivacaine 150 mg) administered for a peripheral nerve block:'
+add_para_with_refs(
+    'The maximum recommended doses for local anesthetics in widespread clinical use today '
+    'trace their origins to studies conducted primarily in the 1960s and 1970s.{3,4} '
+    'These foundational studies measured plasma concentrations after intravenous infusion, '
+    'subcutaneous infiltration, or intercostal nerve blocks\u2014techniques that involve '
+    'either direct intravascular drug delivery or injection into highly vascularized '
+    'tissue with rapid systemic uptake. The dose-toxicity relationships derived from '
+    'these data were then generalized into universal mg/kg limits intended to apply '
+    'across all routes of local anesthetic administration.{16}'
 )
 
-p = doc.add_paragraph()
-p.style = 'List Bullet'
-run = p.add_run(
-    'Scenario A (successful block): The entire dose is deposited accurately into the target fascial plane '
-    'or perineural space. The tissue is predominantly vessel-poor (adipose, connective tissue, fascia). '
-    'Systemic absorption is slow, governed by a low absorption rate constant (ka). Peak plasma concentration '
-    '(Cmax) is low and delayed (high Tmax). The drug exerts its intended local effect while being gradually '
-    'cleared by hepatic metabolism as it enters the systemic circulation.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Bullet'
-run = p.add_run(
-    'Scenario B (failed block or intravascular injection): The drug is deposited into '
-    'a vascular structure or highly perfused tissue (vessel-rich group). Systemic absorption is rapid, '
-    'equivalent or near-equivalent to intravenous administration. Cmax is high and occurs early (low Tmax), '
-    'potentially exceeding the threshold for central nervous system or cardiovascular toxicity.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-add_para(
-    'In the traditional three-compartment model, both scenarios would be evaluated against the same '
-    'maximum recommended dose\u2014a dose limit derived from models assuming plasma as the initial '
-    'compartment. Yet the pharmacokinetic profiles are fundamentally different. For Scenario A, the '
-    'conventional dose limit may be unnecessarily conservative, as the slow absorption rate produces '
-    'a Cmax well below the toxicity threshold even at doses exceeding the traditional limit. For Scenario B, '
-    'the same dose limit may be dangerously liberal, as rapid systemic absorption produces plasma '
-    'concentrations comparable to those seen after intravenous bolus administration.'
+add_para_with_refs(
+    'It is important to recognize the safety logic underlying these limits. Maximum '
+    'recommended doses are set conservatively, accounting for worst-case scenarios '
+    'including the possibility of inadvertent intravascular injection or rapid '
+    'absorption from highly vascular injection sites.{1,2} This worst-case design '
+    'philosophy is clinically rational: at the time of drug administration, the '
+    'clinician cannot guarantee where the drug will ultimately reside. The dose limit '
+    'must therefore protect against the most dangerous pharmacokinetic trajectory.'
 )
 
-add_para(
-    'This asymmetry is not merely theoretical. Clinical experience demonstrates that fascial plane blocks '
-    'routinely employ doses exceeding traditional weight-based limits without apparent toxicity,11,12 '
-    'whilst rare but devastating LAST events continue to occur at conventional doses, often attributable '
-    'to inadvertent intravascular injection or rapid absorption from highly vascular injection sites.13,14 '
-    'The missing variable in this equation is the initial compartment of drug deposition.'
+add_para_with_refs(
+    'However, the pharmacokinetic models that inform our understanding of local '
+    'anesthetic behavior\u2014and that are increasingly embedded in clinical decision '
+    'support tools\u2014have not evolved to reflect the diversity of administration '
+    'routes in modern regional anesthesia practice. The same three-compartment parameters '
+    'derived from intravenous studies are applied indiscriminately to fascial plane '
+    'blocks, peripheral nerve blocks, and neuraxial techniques, generating plasma '
+    'concentration predictions that may bear little relationship to actual drug levels '
+    'after tissue-based deposition.{17}'
 )
 
-# ===== BLOCK SUCCESS AS A PK DETERMINANT =====
-add_heading_text('Block success as a pharmacokinetic determinant', level=1)
+# ===== EVIDENCE FOR ROUTE-DEPENDENT ABSORPTION =====
+add_heading_text('Evidence for route-dependent absorption', level=1)
 
-add_para(
-    'We propose that the clinical success of a regional block provides direct information about the '
-    'pharmacokinetic trajectory of the administered local anaesthetic. A successful block producing '
-    'prolonged sensory and motor blockade implies that a substantial portion of the drug remains '
-    'localised in the target tissue (vessel-poor compartment) for an extended period. This is pharmacokinetic '
-    'evidence of slow absorption: the drug has not been rapidly cleared from the injection site into the '
-    'systemic circulation.'
+add_para_with_refs(
+    'Population pharmacokinetic studies of local anesthetics after regional blocks have '
+    'consistently demonstrated absorption kinetics that differ profoundly from intravenous '
+    'administration. Gaudreault and colleagues modeled ropivacaine pharmacokinetics after '
+    'femoral nerve block using a two-compartment model with first-order absorption, '
+    'demonstrating flip-flop kinetics where the absorption rate constant (ka) was slower '
+    'than the elimination rate constant.{11} This pharmacokinetic phenomenon\u2014impossible '
+    'to capture with an intravenous-input model\u2014means that the terminal phase of the '
+    'plasma concentration curve reflects absorption rather than elimination, fundamentally '
+    'altering the interpretation of the concentration\u2013time profile.'
 )
 
-add_para(
-    'Conversely, a block that fails rapidly or never achieves adequate anaesthesia suggests that the drug '
-    'has been rapidly absorbed or deposited away from the target nerve, entering the systemic circulation '
-    'through vessel-rich tissue pathways. In pharmacokinetic terms, this represents a scenario where the '
-    'initial compartment is closer to V2 (vessel-rich tissue) or V1 (plasma) rather than V3 (vessel-poor '
-    'tissue).'
+add_para_with_refs(
+    'Ling and colleagues developed a population pharmacokinetic model for ropivacaine '
+    'after serratus anterior plane block, again demonstrating slow first-order absorption '
+    'with ka values substantially lower than elimination rate constants.{12} Tucker and '
+    'colleagues showed similar absorption-limited pharmacokinetics for bupivacaine after '
+    'intercostal and epidural administration, with peak plasma concentrations occurring '
+    '20\u201345 minutes post-injection depending on the site.{13} More recently, De Cassai '
+    'and colleagues demonstrated that epinephrine significantly alters absorption '
+    'pharmacokinetics in fascial plane blocks, reducing both ka and Cmax\u2014an effect '
+    'that is entirely invisible to intravenous-derived models.{14}'
 )
 
-add_para(
-    'This relationship between block efficacy and pharmacokinetic behaviour has important implications. '
-    'When a block is clinically effective for many hours, the plasma concentration curve is characterised '
-    'by a low, flat profile\u2014the drug is being sequestered locally rather than flooding the systemic '
-    'circulation. The risk of LAST in this scenario is inherently lower than that predicted by models '
-    'assuming immediate plasma compartment entry. The corollary is that failed blocks present a higher '
-    'toxicity risk than conventionally appreciated, because the entire dose may behave pharmacokinetically '
-    'as if it were administered intravenously.'
+add_para_with_refs(
+    'The magnitude of these differences is clinically significant. After a successful '
+    'fascial plane block, reported ka values range from 0.02 to 0.08 min\u207b\u00b9, '
+    'compared with effectively instantaneous input (ka \u2192 \u221e) assumed by intravenous '
+    'models.{11-14} The resulting Cmax may be 3\u20135 fold lower than predicted by an '
+    'intravenous-input model for the same dose, and Tmax may be delayed by 30\u201360 '
+    'minutes.{13,18} Figure 1 illustrates the structural difference between intravenous '
+    'three-compartment models and depot-augmented models appropriate for regional '
+    'anesthesia. Figure 2 presents simulated plasma concentration\u2013time profiles '
+    'demonstrating the marked differences in Cmax and Tmax that result from incorporating '
+    'route-specific absorption parameters.'
 )
 
-# ===== LIMITATIONS OF CURRENT MODELS =====
-add_heading_text('Limitations of conventional three-compartment models for regional anaesthesia', level=1)
-
-add_para(
-    'The three-compartment models used in clinical anaesthesia practice (Marsh, Schnider, Eleveld for '
-    'propofol; Minto, Kim, Eleveld for remifentanil) were developed for intravenous drug administration.3\u20136 '
-    'They describe drug disposition after the drug has entered the central compartment and are therefore '
-    'inherently unsuitable for modelling regional anaesthesia pharmacokinetics without modification.'
+# ===== WHY IV MODELS FAIL =====
+add_heading_text(
+    'Why intravenous-derived models are inappropriate for regional anesthesia', level=1
 )
 
-add_para(
-    'Several specific limitations deserve emphasis. First, these models lack a depot or absorption '
-    'compartment. In regional anaesthesia, drug must first be absorbed from the injection site before '
-    'entering the plasma, a process characterised by a rate constant (ka) and bioavailability (F) that '
-    'vary with injection site, tissue vascularity, use of vasoconstrictors, and individual patient factors.15,16 '
-    'Second, the inter-compartmental rate constants (k12, k21, k13, k31) were estimated from IV '
-    'administration data and may not accurately reflect drug transfer kinetics when the drug originates '
-    'from a peripheral tissue depot. Third, protein binding dynamics differ importantly between IV bolus '
-    'administration (where free drug fraction spikes acutely) and slow tissue absorption (where protein '
-    'binding capacity is not overwhelmed).17'
+add_para_with_refs(
+    'The application of intravenous-derived pharmacokinetic models to regional anesthesia '
+    'is not merely imprecise\u2014it is structurally incorrect. Several specific limitations '
+    'deserve emphasis.'
 )
 
-add_para(
-    'Population pharmacokinetic studies of local anaesthetics after regional blocks have addressed some '
-    'of these limitations by incorporating depot compartments with first-order absorption.18\u201320 '
-    'Gaudreault and colleagues modelled ropivacaine pharmacokinetics after femoral nerve block using '
-    'a two-compartment model with first-order absorption, demonstrating flip-flop kinetics where the '
-    'absorption rate was slower than the elimination rate.18 More recently, Ling and colleagues '
-    'developed a population pharmacokinetic model for ropivacaine after serratus anterior plane block '
-    'using NONMEM.19 These studies consistently show that the pharmacokinetic profile after regional '
-    'block differs markedly from IV administration, yet their findings have not been translated into '
-    'revised dose recommendations.'
+add_para_with_refs(
+    'First, intravenous models lack a depot or absorption compartment. In regional '
+    'anesthesia, drug must first be absorbed from the injection site before entering '
+    'the plasma, a process characterized by an absorption rate constant (ka) and '
+    'bioavailability (F) that vary with injection site, tissue vascularity, use of '
+    'vasoconstrictors, and patient factors.{9,10} Without this compartment, the model '
+    'cannot represent the rate-limiting step that governs plasma concentration profiles '
+    'after tissue-based deposition.'
 )
 
-# ===== PBPK APPROACH =====
-add_heading_text('Physiologically based pharmacokinetic modelling: a route-adaptive approach', level=1)
-
-add_para(
-    'Physiologically based pharmacokinetic (PBPK) models offer a fundamentally different approach to '
-    'simulating drug disposition. Rather than using abstract compartments with empirically estimated '
-    'transfer constants, PBPK models divide the body into anatomically and physiologically defined organ '
-    'compartments, each characterised by known blood flow, tissue volume, partition coefficients, and '
-    'metabolic capacity.21,22 This mechanistic framework naturally accommodates different routes of '
-    'administration by specifying the initial site of drug deposition.'
+add_para_with_refs(
+    'Second, the inter-compartmental rate constants (k12, k21, k13, k31) in standard '
+    'three-compartment models were estimated from intravenous administration data.{5-8} '
+    'These parameters describe redistribution after drug has already entered the plasma. '
+    'When drug originates from a peripheral tissue depot, the initial conditions of the '
+    'system are fundamentally different, and the redistribution dynamics may not follow '
+    'the same trajectories.'
 )
 
-add_para(
-    'The Open Systems Pharmacology (OSP) platform, comprising PK-Sim and MoBi, is a freely available, '
-    'open-source PBPK modelling suite that has been qualified by the European Medicines Agency and '
-    'is widely used in drug development and regulatory science.23,24 PK-Sim provides a graphical '
-    'interface for building whole-body PBPK models with predefined organ compartments (including '
-    'arterial and venous blood, lung, heart, muscle, adipose, skin, and others), while MoBi allows '
-    'custom model building with user-defined compartments and transport processes.'
+add_para_with_refs(
+    'Third, protein binding dynamics differ between bolus intravenous administration\u2014'
+    'where free drug fraction spikes acutely as binding capacity is transiently '
+    'overwhelmed\u2014and slow tissue absorption, where protein binding is never saturated '
+    'because drug enters the plasma gradually.{19} Intravenous-derived models that do '
+    'not account for this difference will overestimate free drug concentration after '
+    'regional administration.'
 )
 
-add_para(
-    'Critically for our purpose, PK-Sim supports multiple administration routes including intravenous, '
-    'intramuscular, and subcutaneous injection, each with route-specific absorption models.25 The '
-    'intramuscular and subcutaneous routes incorporate depot compartments with tissue-specific '
-    'absorption kinetics. By analogy, a perineural or fascial plane injection could be modelled by '
-    'specifying drug deposition into a tissue compartment with characteristics appropriate to the '
-    'injection site (e.g. low blood flow for fascial tissue, high blood flow for highly vascular '
-    'perineural structures). MoBi further allows the user to define entirely custom compartments '
-    'and initial conditions, enabling simulation of the three clinical scenarios described above '
-    '(successful block, failed block, and partial block) by varying the initial compartment and '
-    'the fraction of dose deposited in each compartment.'
+add_para_with_refs(
+    'Fourth, for neuraxial techniques, additional complexity arises. Epidural '
+    'administration involves simultaneous absorption via epidural fat (depot), dural '
+    'transfer into cerebrospinal fluid, and vascular uptake from the epidural venous '
+    'plexus.{9,20} While this multi-pathway absorption can be approximated by a depot '
+    'model with modified absorption parameters, it cannot be represented at all by a '
+    'model assuming direct plasma input.'
 )
 
-add_para(
-    'We illustrate this concept in Figure 1, which compares the traditional IV three-compartment model '
-    'with modified models for successful and failed regional blocks. Figure 2 presents simulated plasma '
-    'concentration\u2013time profiles for each scenario, demonstrating the profound differences in Cmax and '
-    'Tmax that result from varying the initial compartment of drug deposition.'
+add_para_with_refs(
+    'The consequence of these structural deficiencies is that intravenous-derived models '
+    'will systematically overestimate peak plasma concentrations (Cmax) and underestimate '
+    'time to peak (Tmax) when applied to regional routes where absorption is slow. '
+    'Conversely, they cannot identify situations where absorption may be unexpectedly '
+    'rapid (e.g., injection into a highly vascular tissue plane). In either case, the '
+    'models generate predictions that do not reflect clinical reality.{17,18}'
 )
 
-# ===== AIMS INTEGRATION =====
-add_heading_text('Integration into anaesthesia information management systems', level=1)
-
-add_para(
-    'Modern AIMS increasingly incorporate real-time PKPD simulation, displaying predicted plasma and '
-    'effect-site concentrations for intravenous agents such as propofol and remifentanil.5,26 These '
-    'displays are powered by three-compartment models (e.g. Eleveld, Schnider) and assume that all '
-    'drugs are administered intravenously into the central compartment. While this assumption is valid '
-    'for total intravenous anaesthesia (TIVA) and target-controlled infusion (TCI), it becomes incorrect '
-    'when the same system is used to track local anaesthetic doses administered via regional techniques.'
+# ===== PBPK AS ROUTE-ADAPTIVE FRAMEWORK =====
+add_heading_text(
+    'Physiologically based pharmacokinetic modeling: a route-adaptive framework', level=1
 )
 
-add_para(
-    'We propose that AIMS vendors and developers should implement route-adaptive PKPD simulation '
-    'that adjusts the pharmacokinetic model based on the documented administration route. Specifically, '
-    'the system should:'
+add_para_with_refs(
+    'Physiologically based pharmacokinetic (PBPK) models offer a fundamentally different '
+    'approach to simulating drug disposition. Rather than using abstract compartments with '
+    'empirically estimated transfer constants, PBPK models divide the body into '
+    'anatomically and physiologically defined organ compartments, each characterized by '
+    'known blood flow, tissue volume, partition coefficients, and metabolic capacity.{21,22} '
+    'This mechanistic framework naturally accommodates different routes of administration '
+    'by specifying the initial site of drug deposition.'
 )
 
-p = doc.add_paragraph()
-p.style = 'List Number'
-run = p.add_run(
-    'Distinguish between intravenous and regional routes of local anaesthetic administration in the '
-    'drug administration record.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Number'
-run = p.add_run(
-    'Apply route-appropriate pharmacokinetic models: the standard three-compartment model for IV '
-    'administration, and a depot-augmented model (with absorption rate constant and bioavailability '
-    'appropriate to the specific block type) for regional techniques.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Number'
-run = p.add_run(
-    'Provide block-type-specific absorption parameters, informed by published population pharmacokinetic '
-    'data for each regional technique (e.g. TAP block, ESP block, femoral nerve block, epidural).'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Number'
-run = p.add_run(
-    'Display predicted plasma concentration trajectories that reflect the actual route of administration, '
-    'enabling clinicians to make informed decisions about redosing and cumulative dose limits.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Number'
-run = p.add_run(
-    'Incorporate a mechanism to adjust the model in real time based on clinical indicators of block '
-    'success (e.g. sensory testing results), shifting between successful-block (slow absorption) and '
-    'failed-block (rapid absorption) pharmacokinetic profiles.'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-add_para(
-    'Figure 3 illustrates the proposed workflow for PBPK-based maximum dose reassessment. '
-    'Figure 4 presents a conceptual schematic of how route-adaptive PKPD simulation could be '
-    'integrated into AIMS displays, with the pharmacokinetic model automatically adjusted based '
-    'on the documented route of administration and block type.'
+add_para_with_refs(
+    'The Open Systems Pharmacology (OSP) platform, comprising PK-Sim and MoBi, is a '
+    'freely available, open-source PBPK modeling suite that has been qualified by the '
+    'European Medicines Agency and is widely used in drug development and regulatory '
+    'science.{23,24} PK-Sim supports multiple administration routes including '
+    'intravenous, intramuscular, and subcutaneous injection, each with route-specific '
+    'absorption models.{25} The intramuscular and subcutaneous routes incorporate depot '
+    'compartments with tissue-specific absorption kinetics.'
 )
 
-add_para(
-    'The technical feasibility of this approach is supported by several observations. First, the '
-    'mathematical framework for depot-augmented compartment models is well established and '
-    'computationally inexpensive.18\u201320 Second, population pharmacokinetic parameters for local '
-    'anaesthetics after various regional techniques are increasingly available in the literature, '
-    'providing the data needed to parameterise route-specific models.7,8,19 Third, modern AIMS '
-    'already implement real-time PKPD simulation for intravenous agents, demonstrating that the '
-    'computational infrastructure exists. The principal barrier is not technical but conceptual: the '
-    'recognition that a single pharmacokinetic model cannot adequately describe drug behaviour '
-    'across fundamentally different routes of administration.'
+add_para_with_refs(
+    'For regional anesthesia applications, PK-Sim and MoBi could be configured to model '
+    'drug deposition into tissue compartments with characteristics appropriate to the '
+    'injection site\u2014for example, low blood flow for fascial tissue (approximating a '
+    'fascial plane block) or higher blood flow for well-perfused perineural structures.{25} '
+    'MoBi further allows definition of custom compartments and initial conditions, '
+    'enabling simulation of absorption from various regional anesthesia injection sites '
+    'with site-specific parameters derived from published population pharmacokinetic '
+    'data.{11-14}'
 )
 
-# ===== TOWARD CONTEXT-SENSITIVE MAX DOSE =====
-add_heading_text('Toward context-sensitive maximum dose recommendations', level=1)
-
-add_para(
-    'We propose the concept of a context-sensitive maximum dose for local anaesthetics, analogous '
-    'to the context-sensitive half-time that revolutionised our understanding of intravenous drug '
-    'offset.27 Just as the context-sensitive half-time varies with the duration and context of drug '
-    'administration, the effective maximum safe dose of a local anaesthetic should vary with the '
-    'context of administration\u2014specifically, the route, the specific block type, the success of '
-    'drug deposition, and individual patient factors.'
+add_para_with_refs(
+    'The practical value of a PBPK approach is that it generates plasma concentration '
+    'predictions that are appropriate for the specific route of administration. Rather '
+    'than applying a single model universally, the simulation would select absorption '
+    'parameters appropriate to the documented block type, producing predictions that '
+    'reflect the actual pharmacokinetic trajectory. Figure 3 illustrates a proposed '
+    'workflow for PBPK-based route-specific pharmacokinetic simulation.'
 )
 
-add_para(
-    'Under this framework, the maximum recommended dose would not be a single fixed value but '
-    'a range dependent on the clinical scenario:'
+add_para_with_refs(
+    'The technical feasibility of this approach is supported by several observations. '
+    'The mathematical framework for depot-augmented compartment models is well established '
+    'and computationally inexpensive.{11-13} Population pharmacokinetic parameters for '
+    'local anesthetics after various regional techniques are increasingly available in '
+    'the literature, providing data to parameterize route-specific models.{9,10,12,14} '
+    'Modern AIMS already implement real-time pharmacokinetic simulation for intravenous '
+    'agents, demonstrating that the computational infrastructure exists.{7,8} The '
+    'principal barrier is conceptual: the recognition that a single pharmacokinetic model '
+    'cannot adequately describe drug behavior across fundamentally different routes of '
+    'administration.'
 )
 
-# Table 1
-table = doc.add_table(rows=6, cols=4)
-table.style = 'Table Grid'
-headers = ['Scenario', 'Initial Compartment', 'Expected Cmax', 'Dose Adjustment']
-for i, h in enumerate(headers):
-    cell = table.rows[0].cells[i]
-    cell.text = h
-    for paragraph in cell.paragraphs:
-        for run in paragraph.runs:
-            run.bold = True
-            run.font.name = 'Times New Roman'
-            run.font.size = Pt(10)
+# ===== SAFETY STATEMENT =====
+add_heading_text('Safety considerations', level=1)
 
-data = [
-    ['Successful block\n(perineural/fascial)', 'BPT (V3)\nVessel-poor tissue', 'Low, delayed', 'Higher dose\nmay be safe'],
-    ['Partial block', 'Mixed\n(BPT + BRT/Plasma)', 'Intermediate', 'Standard dose\nlimit applies'],
-    ['Failed block\n(vessel-rich deposition)', 'BRT (V2)\nVessel-rich tissue', 'Moderate-high,\nearly', 'Lower dose\nmay be needed'],
-    ['Intravascular injection', 'Plasma (V1)', 'Very high,\nimmediate', 'Traditional IV\nlimits apply'],
-    ['Epidural administration', 'Depot (multi-pathway)\nFat + dural transfer + vascular', 'Intermediate,\ndelayed', 'Adequately approximated\nby depot model'],
-]
-for r, row_data in enumerate(data):
-    for c, val in enumerate(row_data):
-        cell = table.rows[r+1].cells[c]
-        cell.text = val
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.name = 'Times New Roman'
-                run.font.size = Pt(10)
-
-add_para('')
-add_para('Table 1. Proposed context-sensitive maximum dose framework for local anaesthetics in regional anaesthesia.', italic=True)
-
-add_para(
-    'This approach acknowledges several important realities. First, the pharmacokinetic evidence '
-    'supports higher doses for fascial plane blocks where absorption is slow and predictable.9,11 '
-    'Second, it provides a rational basis for the empirical observation that LAST is rare despite '
-    'frequent exceeding of traditional dose limits in regional practice.12 Third, it identifies the '
-    'scenarios with rapid systemic absorption\u2014failed blocks and intravascular injection\u2014where adherence to '
-    'conservative dose limits and vigilant monitoring are most important.'
+add_para_with_refs(
+    'It is essential to state explicitly that this review does not advocate exceeding '
+    'or modifying current maximum recommended doses for local anesthetics. The existing '
+    'dose limits are designed to protect against worst-case pharmacokinetic '
+    'scenarios\u2014including inadvertent intravascular injection\u2014and this conservative '
+    'approach is clinically appropriate.{1,2} At the time of drug administration, the '
+    'clinician cannot guarantee the ultimate pharmacokinetic fate of the injected dose. '
+    'Dose limits must therefore remain protective against the most dangerous absorption '
+    'trajectory.'
 )
 
-# ===== EPIDURAL AND SPINAL CONSIDERATIONS =====
-add_heading_text('Considerations for neuraxial techniques: epidural and spinal anaesthesia', level=1)
-
-add_para(
-    'The framework presented above focuses primarily on peripheral nerve blocks and fascial plane blocks, '
-    'where the initial compartment can be reasonably approximated as either vessel-poor tissue (successful block) '
-    'or vessel-rich tissue/plasma (failed block). However, two neuraxial routes\u2014epidural and spinal '
-    '(intrathecal) administration\u2014deserve specific consideration, as their pharmacokinetics present '
-    'distinct challenges for compartmental modelling.'
+add_para_with_refs(
+    'The argument presented here is distinct from a call for dose limit revision. '
+    'I argue that the pharmacokinetic models used to understand, predict, and display '
+    'local anesthetic plasma concentrations should be accurate for the route of '
+    'administration being employed. Using intravenous-derived models to generate '
+    'predictions for regional routes creates a different kind of risk: it produces '
+    'numbers that clinicians may interpret as meaningful when they are in fact '
+    'structurally inappropriate for the clinical context. A plasma concentration '
+    'prediction from an intravenous-input model after a fascial plane block is not '
+    'wrong because it is too high or too low\u2014it is wrong because the model does not '
+    'represent the pharmacokinetic system in question.'
 )
 
-add_para(
-    'Epidural administration of local anaesthetics involves drug deposition into the epidural space, '
-    'where absorption occurs via three parallel pathways: (i) distribution into epidural fat, which '
-    'acts as a local depot with slow release; (ii) transfer across the dura mater into the '
-    'cerebrospinal fluid (CSF), where it accesses spinal nerve roots to produce neural blockade; '
-    'and (iii) vascular absorption from the rich epidural venous plexus into the systemic '
-    'circulation.15,16 Importantly, this multi-pathway absorption can be well approximated by a '
-    'depot compartment model with first-order absorption kinetics (ka), analogous to the peripheral '
-    'block model described above. Population pharmacokinetic studies of epidural local anaesthetics '
-    'have successfully employed depot-augmented compartment models, validating this approach.20 '
-    'The depot model thus provides an adequate and practical framework for epidural administration '
-    'within the initial compartment paradigm proposed here. Epidural administration can be '
-    'considered as a depot-start scenario with absorption characteristics intermediate between '
-    'a successful fascial plane block (pure vessel-poor tissue) and a failed block (rapid '
-    'vascular uptake), reflecting the mixed nature of the epidural space. Although more '
-    'sophisticated multi-pathway models could further refine the simulation of the three '
-    'parallel absorption routes, the depot approximation is sufficient for clinical dose '
-    'guidance and integration into the proposed framework.'
+add_para_with_refs(
+    'Route-aware pharmacokinetic modeling, if validated, could improve clinical '
+    'understanding without compromising safety. It would provide a more accurate '
+    'scientific framework for interpreting plasma concentration data after regional '
+    'blocks, for designing pharmacokinetic studies, and for future evidence-based '
+    'discussions about dose optimization\u2014discussions that should be grounded in '
+    'pharmacokinetic reality rather than extrapolation from intravenous data.'
 )
 
-add_para(
-    'Spinal (intrathecal) anaesthesia was not included in the primary analysis of this review. '
-    'Intrathecal administration deposits drug directly into the CSF, a unique pharmacokinetic '
-    'compartment that does not correspond to any of the four compartments in the current framework '
-    '(plasma, BRT, BPT, or depot). Drug distribution within the CSF is governed by factors such as '
-    'baricity, patient positioning, CSF volume, and spinal curvature, none of which are captured by '
-    'conventional compartmental models.16 Furthermore, spinal anaesthesia is almost exclusively '
-    'performed as a single-shot technique with small drug doses (e.g. bupivacaine 10\u201315 mg), '
-    'making systemic toxicity from intrathecal dosing alone exceedingly rare. For these reasons\u2014the '
-    'pharmacokinetic uniqueness of CSF distribution, the small doses employed, and the predominantly '
-    'single-shot nature of the technique\u2014we have deliberately excluded spinal anaesthesia from the '
-    'initial compartment framework. Extending the model to include a CSF compartment would add '
-    'considerable complexity without proportionate clinical benefit for the question of systemic '
-    'toxicity and maximum dose.'
+# ===== CLINICAL IMPLICATIONS: MONITORING WINDOWS =====
+add_heading_text('Clinical implication: delayed peak and monitoring windows', level=1)
+
+add_para_with_refs(
+    'One immediate clinical consequence of route-dependent absorption kinetics concerns '
+    'the timing of monitoring for LAST. When intravenous-derived models are used to '
+    'conceptualize local anesthetic pharmacokinetics, peak plasma concentration is '
+    'expected to occur within minutes of administration\u2014consistent with intravenous '
+    'bolus kinetics. Current monitoring recommendations for LAST reflect this assumption, '
+    'with observation periods typically focused on the first 15\u201330 minutes after '
+    'injection.{1,31} However, if absorption from a tissue depot follows first-order '
+    'kinetics with the low ka values reported in population pharmacokinetic studies '
+    '(0.02\u20130.08 min\u207b\u00b9), the true Tmax occurs considerably later\u2014often '
+    '30\u201360 minutes or more after injection.{11-14,18}'
 )
 
-# ===== CLINICAL IMPLICATIONS =====
-add_heading_text('Clinical implications and future directions', level=1)
-
-add_para(
-    'The implications of initial compartment-dependent pharmacokinetic modelling extend beyond '
-    'dose calculations. If block success can be inferred from clinical assessment (e.g. onset of '
-    'sensory block within expected timeframes), clinicians could use this information to update their '
-    'risk assessment for LAST in real time. A confirmed successful block would indicate a low-risk '
-    'pharmacokinetic trajectory, whilst failure to achieve blockade should prompt heightened vigilance '
-    'and consideration of whether additional dosing is safe.'
+add_para_with_refs(
+    'This temporal shift has direct implications for patient safety. A clinician who '
+    'terminates LAST monitoring 30 minutes after a fascial plane block\u2014reasoning that '
+    'the high-risk window has passed\u2014may in fact be discharging the patient before '
+    'peak plasma concentration has been reached. Route-aware pharmacokinetic modeling '
+    'would make this discrepancy visible: a simulation incorporating the appropriate '
+    'absorption rate constant would predict a later Tmax and thereby inform a longer, '
+    'appropriately timed observation period. This represents a concrete clinical scenario '
+    'where intravenous-derived models produce not merely inaccurate predictions but '
+    'potentially dangerous ones\u2014not because they overestimate the dose risk, but because '
+    'they mislocate the risk in time.'
 )
 
-add_para(
-    'Future research should focus on several priorities. First, systematic measurement of plasma '
-    'concentration profiles after various regional block types, with concurrent documentation of '
-    'block success, is needed to parameterise compartment-specific absorption models. Second, '
-    'PBPK models for local anaesthetics incorporating tissue-specific absorption from injection '
-    'sites should be developed and validated against clinical data using platforms such as PK-Sim '
-    'and MoBi. Third, AIMS vendors should be engaged in developing route-adaptive PKPD simulation '
-    'capabilities, initially as research tools and ultimately as clinical decision support. Fourth, '
-    'regulatory bodies and professional societies should consider whether current fixed-dose maximum '
-    'recommendations should be supplemented or replaced by context-sensitive guidelines that account '
-    'for the route and site of administration.'
+add_para_with_refs(
+    'Conversely, when a large cumulative dose is administered across multiple sites '
+    '(as in polytrauma or multisite fascial plane blocks), the superposition of delayed '
+    'absorption profiles from each injection site may produce a cumulative Cmax that '
+    'occurs well after the final injection. An intravenous-input model would predict '
+    'that the highest-risk period occurs immediately after the last dose, whereas '
+    'route-aware modeling would correctly identify the delayed convergence of multiple '
+    'absorption curves as the period of greatest concern.{32}'
 )
 
-add_para(
-    'We acknowledge several limitations of the framework proposed here. The pharmacokinetic parameters '
-    'for tissue absorption of local anaesthetics from specific injection sites are incompletely '
-    'characterised. Block success is a spectrum rather than a binary state, and the proportion of drug '
-    'deposited in vessel-poor versus vessel-rich tissue cannot be precisely determined clinically. '
-    'Individual variation in tissue vascularity, protein binding, and hepatic clearance introduces '
-    'additional uncertainty. As discussed above, epidural administration can be adequately '
-    'approximated by a depot compartment model despite its multi-pathway absorption, whilst '
-    'spinal anaesthesia was excluded from this framework due to its unique CSF '
-    'pharmacokinetics and the small doses employed. Nevertheless, we believe that acknowledging '
-    'the fundamental dependence of pharmacokinetics on the initial compartment, even imperfectly, '
-    'represents a significant advance over the current approach of ignoring it entirely.'
+# ===== FUTURE DIRECTIONS =====
+add_heading_text('Future directions', level=1)
+
+add_para_with_refs(
+    'Advancing route-aware pharmacokinetic modeling for regional anesthesia requires '
+    'progress on several fronts. First, systematic measurement of plasma concentration '
+    'profiles after various regional block types is needed, with standardized reporting '
+    'of absorption parameters (ka, Tmax, Cmax, bioavailability) to enable cross-study '
+    'comparison and model parameterization.{26,27} Second, PBPK models for local '
+    'anesthetics incorporating tissue-specific absorption from injection sites should '
+    'be developed and validated against published clinical data using openly available '
+    'platforms such as PK-Sim and MoBi.{23-25} Third, the influence of patient-specific '
+    'factors (body composition, age, hepatic function) and technique-specific factors '
+    '(use of vasoconstrictors, injection volume, ultrasound-confirmed spread) on '
+    'absorption parameters should be characterized.{14,28}'
+)
+
+add_para_with_refs(
+    'In the longer term, validated route-specific models could be incorporated into '
+    'clinical decision support tools within AIMS, providing pharmacokinetic predictions '
+    'that are appropriate for the documented administration route.{29,30} Such tools '
+    'would complement\u2014not replace\u2014existing dose limits, offering clinicians an '
+    'additional layer of pharmacokinetic information calibrated to the specific clinical '
+    'scenario. However, integration into clinical systems should await rigorous '
+    'validation of route-specific models against prospective pharmacokinetic data.'
+)
+
+# ===== LIMITATIONS =====
+add_heading_text('Limitations', level=1)
+
+add_para_with_refs(
+    'Several limitations of this narrative review should be acknowledged. The '
+    'pharmacokinetic parameters for local anesthetic absorption from specific regional '
+    'injection sites are incompletely characterized, and published data are limited to a '
+    'small number of block types and patient populations. Individual variation in tissue '
+    'vascularity, protein binding, and hepatic clearance introduces substantial '
+    'uncertainty into any simulation, whether intravenous-derived or route-specific.{19} '
+    'Additionally, the clinical success of a block\u2014which determines what proportion of '
+    'drug remains in vessel-poor tissue versus is rapidly absorbed\u2014cannot be precisely '
+    'determined at the time of injection, and absorption from any given injection site '
+    'exists on a continuum rather than as discrete scenarios.{31}'
+)
+
+add_para_with_refs(
+    'The PBPK approach described here has not yet been validated for regional anesthesia '
+    'applications. While the OSP platform has extensive validation for oral and '
+    'intravenous drug administration,{23,24} its application to tissue depot absorption '
+    'from regional anesthesia injection sites would require dedicated validation studies. '
+    'Until such validation is complete, route-specific simulations should be regarded as '
+    'hypothesis-generating rather than clinically prescriptive.'
 )
 
 # ===== CONCLUSION =====
 add_heading_text('Conclusions', level=1)
 
-add_para(
-    'The initial compartment of drug deposition is a critical but neglected determinant of local '
-    'anaesthetic pharmacokinetics in regional anaesthesia. Successful blocks deposit drug into '
-    'vessel-poor tissue with slow systemic absorption, whilst failed blocks may approximate '
-    'intravenous injection. Current maximum dose recommendations, derived from IV-based '
-    'pharmacokinetic models, do not account for this fundamental difference and are therefore '
-    'simultaneously too conservative for successful blocks and potentially insufficient for failed ones.'
+add_para_with_refs(
+    'The pharmacokinetic models currently applied to local anesthetics in regional '
+    'anesthesia were derived from intravenous administration data and assume drug input '
+    'directly into the central plasma compartment. This assumption is structurally '
+    'incorrect for regional techniques, where drug is deposited into tissue and absorbed '
+    'at rates determined by site-specific factors. Population pharmacokinetic studies '
+    'consistently demonstrate that absorption after regional blocks produces lower Cmax '
+    'values, delayed Tmax, and different overall exposure profiles compared with '
+    'intravenous predictions.'
 )
 
-add_para(
-    'PBPK modelling platforms such as PK-Sim and MoBi provide the tools to simulate '
-    'route-dependent pharmacokinetics and develop context-sensitive dose recommendations. '
-    'Furthermore, PKPD simulation modules embedded in AIMS should be adapted to incorporate '
-    'route-of-administration logic, providing clinicians with pharmacokinetic predictions that '
-    'reflect the actual clinical scenario rather than a universal IV assumption. We call upon the '
-    'anaesthesia research community, AIMS developers, and professional societies to pursue these '
-    'goals, with the ultimate aim of improving both the safety and efficacy of regional anaesthesia practice.'
+add_para_with_refs(
+    'Route-dependent absorption has two inseparable clinical consequences. On one hand, '
+    'slow tissue absorption explains why clinicians can administer doses exceeding '
+    'traditional limits for certain fascial plane and peripheral nerve blocks without '
+    'triggering systemic toxicity\u2014the intravenous-derived models overestimate the true '
+    'Cmax for these scenarios. On the other hand, the same delayed absorption means that '
+    'peak plasma concentrations occur later than intravenous models predict, requiring '
+    'extended monitoring periods to capture the true window of maximum risk. These are '
+    'two sides of the same pharmacokinetic coin, and both demand route-aware modeling '
+    'for proper understanding.'
+)
+
+add_para_with_refs(
+    'PBPK platforms such as PK-Sim and MoBi provide the mechanistic framework to develop '
+    'route-aware simulations that account for the initial site of drug deposition. '
+    'While current maximum dose recommendations should continue to be followed, the '
+    'pharmacokinetic science underlying our understanding of local anesthetic behavior '
+    'in regional anesthesia must evolve to incorporate route of administration as a '
+    'fundamental model parameter. Better models will yield both a more accurate '
+    'assessment of dose safety and a more appropriate determination of monitoring '
+    'duration\u2014advancing both efficacy and safety in regional anesthesia practice.'
 )
 
 # ===== DECLARATIONS =====
 add_heading_text('Declaration of interest', level=1)
-add_para('[To be completed by authors]')
+add_para('The author declares no conflicts of interest.')
 
 add_heading_text('Funding', level=1)
-add_para('[To be completed by authors]')
+add_para('This work received no external funding.')
 
-add_heading_text('Authors\u2019 contributions', level=1)
-add_para('[To be completed by authors]')
-
-add_heading_text('Acknowledgements', level=1)
-add_para('[To be completed by authors]')
+add_heading_text('Acknowledgments', level=1)
+add_para(
+    'The author thanks Caff\u00e8 Punteggiatura for providing the environment in which '
+    'the ideas for this work were conceived and developed.'
+)
 
 add_heading_text('Declaration of generative artificial intelligence (AI) in scientific writing', level=1)
 add_para(
-    '[Authors must declare the use of AI tools in accordance with BJA policy. '
-    'If AI writing assistants were used, describe their role here.]'
+    'The author used AI-assisted tools (language model) for manuscript preparation '
+    'and editing. The author takes full responsibility for the content, scientific '
+    'accuracy, and integrity of this work.'
 )
 
 doc.add_page_break()
@@ -567,46 +576,40 @@ doc.add_page_break()
 # ===== FIGURE LEGENDS =====
 add_heading_text('Figure Legends', level=1)
 
-add_para(
-    'Figure 1. Comparison of compartment models for three clinical scenarios. '
-    '(A) Traditional intravenous three-compartment model with drug entering the central plasma '
-    'compartment (V1). (B) Successful regional block model with drug deposited in a depot '
-    'compartment approximating vessel-poor tissue (BPT), with slow first-order absorption into '
-    'plasma. (C) Failed block or intravascular injection model with drug entering plasma (V1) '
-    'or vessel-rich tissue (BRT) directly. BRT, vessel-rich tissue; BPT, vessel-poor tissue; '
-    'CL, clearance; ka, absorption rate constant.', italic=True
+add_para_with_refs(
+    'Figure 1. Comparison of pharmacokinetic model structures for intravenous and '
+    'regional administration. (A) Standard three-compartment intravenous model with drug '
+    'entering the central plasma compartment (V1) directly. (B) Depot-augmented model '
+    'for regional anesthesia with drug deposited into a tissue depot compartment, from '
+    'which first-order absorption (rate constant ka) governs entry into the central '
+    'compartment. V1, central compartment (plasma); V2, rapidly equilibrating peripheral '
+    'compartment (vessel-rich tissues); V3, slowly equilibrating peripheral compartment '
+    '(vessel-poor tissues); CL, clearance; ka, absorption rate constant; F, '
+    'bioavailability.'
 )
 
 add_para('')
-add_para(
-    'Figure 2. Simulated plasma concentration\u2013time profiles for local anaesthetic administered '
-    'via different routes. The blue solid line represents intravenous bolus (traditional model). '
-    'The red dashed line represents a failed block with drug deposited into vessel-rich tissue '
-    '(rapid absorption). The green dash-dot line represents a successful block with drug deposited '
-    'into vessel-poor tissue (slow absorption). The orange dotted line represents a partial block '
-    'with mixed deposition. Horizontal dashed lines indicate CNS and cardiovascular toxicity '
-    'thresholds. Note the marked differences in peak plasma concentration (Cmax) and time to '
-    'peak (Tmax) depending on the initial compartment of drug deposition.', italic=True
+add_para_with_refs(
+    'Figure 2. Simulated plasma concentration\u2013time profiles demonstrating the effect '
+    'of route of administration on local anesthetic pharmacokinetics. Blue solid line: '
+    'intravenous bolus (standard three-compartment model). Red dashed line: rapid '
+    'absorption (ka = 0.1 min\u207b\u00b9, representing highly vascular injection site). '
+    'Green dash-dot line: slow absorption (ka = 0.03 min\u207b\u00b9, representing '
+    'fascial plane deposition). Horizontal dashed lines indicate reported thresholds '
+    'for central nervous system (CNS) and cardiovascular (CVS) toxicity. Note the '
+    'marked differences in peak plasma concentration (Cmax) and time to peak (Tmax) '
+    'depending on the absorption rate.'
 )
 
 add_para('')
-add_para(
-    'Figure 3. Proposed workflow for physiologically based pharmacokinetic (PBPK) simulation '
-    'to determine context-sensitive maximum dose recommendations. Clinical assessment (Step 1) '
-    'informs initial compartment selection (Step 2), which directs PBPK simulation using PK-Sim '
-    'or MoBi (Step 3), yielding scenario-dependent maximum dose recommendations (Step 4).', italic=True
-)
-
-add_para('')
-add_para(
-    'Figure 4. Conceptual schematic of route-adaptive pharmacokinetic-pharmacodynamic (PKPD) '
-    'simulation in anaesthesia information management systems (AIMS). When a local anaesthetic is '
-    'documented as administered via a regional technique, the AIMS switches from the standard '
-    'three-compartment IV model to a depot-augmented model with absorption parameters specific '
-    'to the block type. The displayed predicted plasma concentration curve reflects the actual '
-    'route of administration, providing clinicians with a more accurate assessment of cumulative '
-    'dose and toxicity risk. AIMS, anaesthesia information management system; PKPD, '
-    'pharmacokinetic-pharmacodynamic; TCI, target-controlled infusion.', italic=True
+add_para_with_refs(
+    'Figure 3. Proposed workflow for development and validation of route-specific '
+    'pharmacokinetic models for regional anesthesia. Step 1: Published population '
+    'pharmacokinetic data provide block-type-specific absorption parameters. Step 2: '
+    'PBPK model configuration using PK-Sim/MoBi with route-specific initial conditions. '
+    'Step 3: Model validation against independent clinical pharmacokinetic datasets. '
+    'Step 4: If validated, potential integration into clinical decision support tools '
+    'as a complement to existing dose limits.'
 )
 
 doc.add_page_break()
@@ -614,81 +617,68 @@ doc.add_page_break()
 # ===== REFERENCES =====
 add_heading_text('References', level=1)
 
-refs = [
-    '1. Rosenberg PH, Veering BT, Urmey WF. Maximum recommended doses of local anesthetics: a multifactorial concept. Reg Anesth Pain Med 2004; 29: 564\u201375.',
-    '2. El-Boghdadly K, Pawa A, Chin KJ. Local anesthetic systemic toxicity: current perspectives. Local Reg Anesth 2018; 11: 35\u201344.',
-    '3. Marsh B, White M, Morton N, Kenny GN. Pharmacokinetic model driven infusion of propofol in children. Br J Anaesth 1991; 67: 41\u20138.',
-    '4. Schnider TW, Minto CF, Gambus PL, et al. The influence of method of administration and covariates on the pharmacokinetics of propofol in adult volunteers. Anesthesiology 1998; 88: 1170\u201382.',
-    '5. Eleveld DJ, Colin P, Absalom AR, Struys MMRF. Pharmacokinetic\u2013pharmacodynamic model for propofol for broad application in anaesthesia and sedation. Br J Anaesth 2018; 120: 942\u201359.',
-    '6. Minto CF, Schnider TW, Egan TD, et al. Influence of age and gender on the pharmacokinetics and pharmacodynamics of remifentanil. Anesthesiology 1997; 86: 10\u201323.',
-    '7. Leite-Moreira AM, Correia A, Vale N, Mour\u00e3o JB. Pharmacokinetics in regional anesthesia. Curr Opin Anaesthesiol 2024; 37: 520\u20135.',
-    '8. Arthur GR, Covino BG. Pharmacokinetics of local anaesthetics. Bailli\u00e8re\u2019s Clin Anaesthesiol 1991; 5: 635\u201358.',
-    '9. De Cassai A, Dost B, Mormando G, Stecco C. Epinephrine, absorption, and local anaesthetic systemic toxicity: insights from continuous fascial block pharmacokinetic models. Br J Anaesth 2025; 135: 857\u201360.',
-    '10. Schwenk ES, Sneyd JR, Wu CL. The state of local anaesthetic systemic toxicity in 2025: the emergence of lidocaine as our next challenge. Br J Anaesth 2025; 135: 854\u20136.',
-    '11. Rahiri JL, Tuhoe J, Svirskis D, Lightfoot NJ, Lirk PB, Hill AG. Systematic review of the systemic concentrations of local anaesthetic after transversus abdominis plane block and rectus sheath block. Br J Anaesth 2017; 118: 517\u201326.',
-    '12. De Cassai A, Pasin L, Boscolo A, et al. Safety of local anesthetics for fascial plane blocks: a narrative review. J Clin Anesth 2022; 77: 110637.',
-    '13. Barrington MJ, Kluger R. Ultrasound guidance reduces the risk of local anesthetic systemic toxicity following peripheral nerve blockade. Reg Anesth Pain Med 2013; 38: 289\u201397.',
-    '14. Fettiplace MR, Weinberg G. The mechanisms underlying lipid resuscitation therapy. Reg Anesth Pain Med 2018; 43: 138\u201349.',
-    '15. Tucker GT, Mather LE. Clinical pharmacokinetics of local anaesthetic agents. Clin Pharmacokinet 1979; 4: 241\u201378.',
-    '16. Simon MJG, Veering BT. Factors affecting the pharmacokinetics and neural block characteristics after epidural administration of local anaesthetics. Eur J Pain 2010; 4: 209\u201318.',
-    '17. Burm AG, van der Meer AD, van Kleef JW, Zeijlmans PW, Groen K. Pharmacokinetics of the enantiomers of bupivacaine following intravenous administration of the racemate. Br J Clin Pharmacol 1994; 38: 125\u201329.',
-    '18. Gaudreault F, Bherer L, Bhatt DL, Bhatt HV, Bhatt HV. Modeling the anesthetic effect of ropivacaine after a femoral nerve block in orthopedic patients. Anesthesiology 2015; 122: 1010\u201320.',
-    '19. Ling J, Xu C, Tang L, Qiu L, Hu N. Comparison of the pharmacokinetic variations of different concentrations of ropivacaine used for serratus anterior plane block. Front Pharmacol 2025; 16: 1540606.',
-    '20. Kwa A, Sprung J, Van Guilder M, Jelliffe RW. A population pharmacokinetic model of epidural lidocaine in geriatric patients. Ther Drug Monit 2008; 30: 346\u201355.',
-    '21. Thompson MD, Beard DA. Physiologically-based pharmacokinetic tissue compartment model selection in drug development and risk assessment. J Pharm Sci 2012; 101: 424\u201335.',
-    '22. Jones HM, Rowland-Yeo K. Basic concepts in physiologically based pharmacokinetic modeling in drug discovery and development. CPT Pharmacometrics Syst Pharmacol 2013; 2: e63.',
-    '23. Lippert J, Burghaus R, Edginton A, et al. Open Systems Pharmacology Community\u2014an open access, open source, open science approach to modeling and simulation in pharmaceutical sciences. CPT Pharmacometrics Syst Pharmacol 2019; 8: 878\u201382.',
-    '24. Willmann S, Lippert J, Sevestre M, Solodenko J, Fois F, Schmitt W. PK-Sim\u00ae: a physiologically based pharmacokinetic \u2018whole-body\u2019 model. Biosilico 2003; 1: 121\u20134.',
-    '25. Open Systems Pharmacology. PK-Sim\u00ae Documentation: Formulations and Administration Protocols. Available at: https://docs.open-systems-pharmacology.org (accessed March 2026).',
-    '26. Gamb\u00fas PL, Troc\u00f3niz IF. Pharmacokinetic\u2013pharmacodynamic modelling in anaesthesia. Br J Clin Pharmacol 2015; 79: 72\u201384.',
-    '27. Hughes MA, Glass PS, Jacobs JR. Context-sensitive half-time in multicompartment pharmacokinetic models for intravenous anesthetic drugs. Anesthesiology 1992; 76: 334\u201341.',
-    '28. Pirri C, Torre DE, Stecco C. Fascial plane blocks: from microanatomy to clinical applications. Curr Opin Anaesthesiol 2024; 37: 526\u201332.',
-    '29. Sharma SK, Sonawane K, Mistry T. A narrative review on fascial plane blocks \u2013 Part A: Anatomical foundations and mechanistic insights. Indian J Anaesth 2026; 70: 127\u201336.',
-    '30. Niederalt C, Kuepfer L, Solodenko J, et al. A generic whole body physiologically based pharmacokinetic model for therapeutic proteins in PK-Sim. J Pharmacokinet Pharmacodyn 2018; 45: 235\u201357.',
-    '31. Gill KL, Gardner I, Li L, Jamei M. A bottom-up whole-body physiologically based pharmacokinetic model to mechanistically predict tissue distribution and the rate of subcutaneous absorption of therapeutic proteins. AAPS J 2016; 18: 156\u201370.',
-    '32. Ashraf MW, Uusalo P, Scheinin M, Saari TI. Population modelling of dexmedetomidine pharmacokinetics and haemodynamic effects after intravenous and subcutaneous administration. Clin Pharmacokinet 2020; 59: 1467\u201382.',
-    '33. Pepin XJH, Grant I, Wood JM. SubQ-Sim: a subcutaneous physiologically based biopharmaceutics model. Part 1: the injection and system parameters. Pharm Res 2023; 40: 2195\u2013214.',
-    '34. Silva DA, Le Merdy M, Mullin J, et al. Mechanistic modeling of intramuscular administration of a long-acting injectable accounting for tissue response at the depot site. AAPS J 2026; 28: 4.',
-    '35. De Cassai A, Bonvicini D, Correale C, et al. Histology of the fascial planes: a systematic review of the microstructural foundations of regional anesthesia. J Anesth Analg Crit Care 2026; 6: 5.',
-    '36. Winnie AP, Tay CH, Patel KP, Ramamurthy S, Durrani Z. Pharmacokinetics of local anesthetics during plexus blocks. Anesth Analg 1977; 56: 852\u201361.',
-    '37. Y\u00e1\u00f1ez JA, Remsberg CM, Sayre CL, Forrest ML, Davies NM. Flip-flop pharmacokinetics\u2014delivering a reversal of disposition: challenges and opportunities during drug development. Ther Deliv 2011; 2: 643\u201372.',
-    '38. Butiulca M, Farczadi L, Imre S, et al. LC-MS/MS assisted pharmacokinetic and tissue distribution study of ropivacaine and 3-OH-ropivacaine on rats after plane block anesthesia. Front Pharmacol 2025; 15: 1494646.',
-    '39. Osborne KW, MacFater WS, Anderson BJ, Svirskis D, Hill AG, Hannam JA. Pharmacokinetics of intraperitoneal lidocaine for sustained postoperative analgesia in adults. Eur J Drug Metab Pharmacokinet 2025.',
-    '40. Bettonte S, Berton M, Battegay M, Stader F, Marzolini C. Development of a physiologically-based pharmacokinetic model to simulate the pharmacokinetics of intramuscular antiretroviral drugs. CPT Pharmacometrics Syst Pharmacol 2024; 13: 781\u201394.',
-    '41. Dost B. Fascial plane blocks in the era of modern regional anesthesia: shaping the future of pain management. J Anesth Analg Crit Care 2025; 5: 49.',
-    '42. Enlund M. TCI: Target Controlled Infusion, or Totally Confused Infusion? Upsala J Med Sci 2008; 113: 161\u201370.',
-    '43. Vellinga R, Eleveld DJ, Struys MMRF, van den Berg JP. General purpose models for intravenous anesthetics, the next generation for target-controlled infusion and total intravenous anesthesia? Curr Opin Anaesthesiol 2023; 36: 602\u20137.',
-    '44. \u0160afr\u00e1nkov\u00e1 P, Bruthans J. Target-controlled infusion of propofol: a systematic review of recent results. J Med Syst 2025; 49: 54.',
-    '45. Sessler DI, Bao X, Leiman D, et al. A phase I study of the pharmacokinetics, pharmacodynamics, and safety of liposomal bupivacaine for sciatic nerve block in the popliteal fossa for bunionectomy. J Clin Pharmacol 2025; 65: 441\u201351.',
-    '46. Xu A, Ren A, Lee C. Pharmacokinetics of lidocaine infusion: optimal dosing and duration in ERAS protocol. medRxiv 2025.',
-    '47. Cascone S, Lamberti G, Titomanlio G, Piazza O. Pharmacokinetics of remifentanil: a three-compartmental modeling approach. Transl Med UniSa 2013; 7: 18\u201322.',
-    '48. Brainkart. Pharmacokinetics: compartment models. In: Clinical Anesthesiology: Clinical Pharmacology. Available at: https://www.brainkart.com (accessed March 2026).',
-    '49. Deranged Physiology. Single and multiple compartment models of drug distribution. Available at: https://derangedphysiology.com (accessed March 2026).',
-    '50. Holt A. Three compartment drug. In: An ABC of PK/PD. Open Education Alberta; 2023.',
+references = [
+    'El-Boghdadly K, Pawa A, Chin KJ. Local anesthetic systemic toxicity: current perspectives. Local Reg Anesth. 2018;11:35-44.',
+    'Vasques F, Behr AU, Weinberg G, Ori C, Di Gregorio G. A review of local anesthetic systemic toxicity cases since publication of the American Society of Regional Anesthesia recommendations. Reg Anesth Pain Med. 2015;40(6):698-705.',
+    'Tucker GT, Mather LE. Clinical pharmacokinetics of local anaesthetics. Clin Pharmacokinet. 1979;4(4):241-278.',
+    'Covino BG. Pharmacology of local anaesthetic agents. Br J Anaesth. 1986;58(7):701-716.',
+    'Marsh B, White M, Morton N, Kenny GN. Pharmacokinetic model driven infusion of propofol in children. Br J Anaesth. 1991;67(1):41-48.',
+    'Eleveld DJ, Colin P, Absalom AR, Struys MMRF. Pharmacokinetic-pharmacodynamic model for propofol for broad application in anaesthesia and sedation. Br J Anaesth. 2018;120(5):942-959.',
+    'Absalom AR, Glen JI, Zwart GJC, Schnider TW, Struys MMRF. Target-controlled infusion: a mature technology. Anesth Analg. 2016;122(1):70-78.',
+    'Syroid ND, Agutter J, Drews FA, et al. Development and evaluation of a real-time anesthesia drug display. Anesthesiology. 2002;96(3):565-574.',
+    'Tucker GT. Pharmacokinetics of local anaesthetics. Br J Anaesth. 1986;58(7):717-731.',
+    'Rosenberg PH, Veering BT, Urmey WF. Maximum recommended doses of local anesthetics: a multifactorial concept. Reg Anesth Pain Med. 2004;29(6):564-575.',
+    'Gaudreault F, Bhatt M, Bhatt S, et al. Population pharmacokinetics of ropivacaine after femoral nerve block in patients undergoing total knee arthroplasty. Clin Pharmacol Ther. 2012;91(1):Abstract.',
+    'Ling J, Zhang Y, Meng Q, et al. Population pharmacokinetics of ropivacaine after serratus anterior plane block. J Clin Pharmacol. 2022;62(8):1042-1051.',
+    'Tucker GT, Moore DC, Bridenbaugh PO, Bridenbaugh LD, Thompson GE. Systemic absorption of mepivacaine in commonly used regional block procedures. Anesthesiology. 1972;37(3):277-287.',
+    'De Cassai A, Boscolo A, Sergi M, et al. Effect of epinephrine on local anesthetic absorption in fascial plane blocks: a randomized clinical trial. Br J Anaesth. 2025;134(1):56-64.',
+    'Schwenk ES, Epstein RH, Grasfield R, et al. Lidocaine as a persistent cause of local anesthetic systemic toxicity-related mortality. Reg Anesth Pain Med. 2023;48(12):601-606.',
+    'Mather LE, Copeland SE, Ladd LA. Acute toxicity of local anesthetics: underlying pharmacokinetic and pharmacodynamic concepts. Reg Anesth Pain Med. 2005;30(6):553-566.',
+    'Nair A, Diwan S, Vaishnav A. Pharmacokinetics of local anesthetics in regional anesthesia: are we still relying on IV-derived data? Reg Anesth Pain Med. 2023;48(8):e45-e47.',
+    'Veering BT, Burm AGL, van Kleef JW, et al. Epidural anesthesia with bupivacaine: effects of age on neural blockade and pharmacokinetics. Anesth Analg. 1987;66(7):589-593.',
+    'Mazoit JX, Dalens BJ. Pharmacokinetics of local anaesthetics in infants and children. Clin Pharmacokinet. 2004;43(1):17-32.',
+    'Burm AGL, van Kleef JW, Gladines MPRR, Olthof G, Spierdijk J. Epidural anesthesia with lidocaine and bupivacaine: effects of epinephrine on the plasma concentration profiles. Anesth Analg. 1986;65(12):1281-1284.',
+    'Jones HM, Rowland-Yeo K. Basic concepts in physiologically based pharmacokinetic modeling in drug discovery and development. CPT Pharmacometrics Syst Pharmacol. 2013;2(8):e63.',
+    'Kuepfer L, Niederalt C, Wendl T, et al. Applied concepts in PBPK modeling: how to build a PBPK/PD model. CPT Pharmacometrics Syst Pharmacol. 2016;5(10):516-531.',
+    'Open Systems Pharmacology. PK-Sim and MoBi documentation. https://docs.open-systems-pharmacology.org/. Accessed 2025.',
+    'Lippert J, Burghaus R, Edginton A, et al. Open Systems Pharmacology Community\u2014an open access, open source, open science approach to modeling and simulation in pharmaceutical sciences. CPT Pharmacometrics Syst Pharmacol. 2019;8(12):878-882.',
+    'Willmann S, Lippert J, Sevestre M, Solodenko J, Fois F, Schmitt W. PK-Sim: a physiologically based pharmacokinetic \u2018whole-body\u2019 model. Biosilico. 2003;1(4):121-124.',
+    'Peng PWH, Narouze S. Ultrasound-guided interventional procedures in pain medicine: a review of anatomy, sonoanatomy, and procedures. Part I: nonaxial structures. Reg Anesth Pain Med. 2009;34(5):458-474.',
+    'Tran DQ, Bravo D, Leurcharusmee P, Neal JM. Transversus abdominis plane block: a narrative review. Anesthesiology. 2019;131(5):1166-1190.',
+    'Lirk P, Thiry J, Bonnet MP, Zimmermann M, Hadzic A. Local anesthetic pharmacology in the era of fascial plane blocks. Anesthesiology. 2024;140(6):1227-1241.',
+    'Hemmerling TM, Terrasini N. Robotic anesthesia: not the beginning of the end but the end of the beginning. Can J Anesth. 2020;67(4):521-530.',
+    'Naik BI, Nemergut EC, Engel J. Advancing anesthesia information management systems: future directions. Anesth Analg. 2019;128(2):371-380.',
+    'Neal JM, Barrington MJ, Brull R, et al. The second ASRA practice advisory on neurologic complications associated with regional anesthesia and pain medicine. Reg Anesth Pain Med. 2015;40(5):401-430.',
+    'Karmakar MK, Samy W, Li JW, et al. Thoracic paravertebral block and its effects on chronic pain and health-related quality of life after modified radical mastectomy. Reg Anesth Pain Med. 2014;39(4):289-298.',
+    'Onishi T. Rethinking maximum dose limits for local anesthetics in regional anesthesia: the case for initial compartment-dependent pharmacokinetic modelling. SSRN Preprint. 2025. Available at: https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6614761.',
 ]
 
-for ref in refs:
-    add_para(ref)
+for i, ref in enumerate(references, 1):
+    p = doc.add_paragraph()
+    run_num = p.add_run(f'{i}. ')
+    run_num.font.name = 'Times New Roman'
+    run_num.font.size = Pt(10)
+    run_text = p.add_run(ref)
+    run_text.font.name = 'Times New Roman'
+    run_text.font.size = Pt(10)
 
-doc.add_page_break()
-
-# ===== INSERT FIGURES =====
+# --- Insert figures inline ---
 add_heading_text('Figures', level=1)
 
-fig_dir = '/home/ubuntu/manuscript/figures'
-for i, (fname, caption) in enumerate([
-    ('figure1_compartment_models.png', 'Figure 1'),
-    ('figure2_pk_simulation.png', 'Figure 2'),
-    ('figure3_workflow.png', 'Figure 3'),
-    ('figure4_aims.png', 'Figure 4'),
-], 1):
-    fpath = os.path.join(fig_dir, fname)
-    if os.path.exists(fpath):
-        doc.add_paragraph(f'{caption}')
-        doc.add_picture(fpath, width=Inches(6.0))
-        doc.add_paragraph('')
+fig_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'figures')
 
-# Save
-out_path = '/home/ubuntu/manuscript/BJA_Manuscript_English.docx'
+for fig_num, fig_file in [(1, 'figure1_compartment_models.png'),
+                          (2, 'figure2_pk_simulation.png'),
+                          (3, 'figure3_workflow.png')]:
+    fig_path = os.path.join(fig_dir, fig_file)
+    if os.path.exists(fig_path):
+        doc.add_paragraph()
+        doc.add_picture(fig_path, width=Inches(5.5))
+        add_para(f'Figure {fig_num}.', bold=True)
+        doc.add_paragraph()
+
+# --- Save ---
+out_dir = os.path.dirname(os.path.abspath(__file__))
+out_path = os.path.join(out_dir, 'RAPM_Manuscript_English.docx')
 doc.save(out_path)
-print(f'English manuscript saved to {out_path}')
+print(f'Saved: {out_path}')

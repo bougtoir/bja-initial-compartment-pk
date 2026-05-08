@@ -1,5 +1,11 @@
 #!/usr/bin/env python3
-"""Generate Japanese BJA manuscript as .docx"""
+"""Generate Japanese RAPM manuscript as .docx
+
+Target journal: Regional Anesthesia & Pain Medicine (RAPM)
+Article type: Narrative Review
+Language: Japanese (parallel translation of English version)
+"""
+import re
 from docx import Document
 from docx.shared import Inches, Pt, Cm, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
@@ -16,19 +22,21 @@ for section in doc.sections:
 
 style = doc.styles['Normal']
 font = style.font
-font.name = 'Times New Roman'
-font.size = Pt(12)
+font.name = 'Yu Mincho'
+font.size = Pt(10.5)
 pf = style.paragraph_format
 pf.space_after = Pt(0)
 pf.space_before = Pt(0)
 pf.line_spacing = 2.0
 
+# Helper functions
 def add_heading_text(text, level=1):
     h = doc.add_heading(text, level=level)
     for run in h.runs:
-        run.font.name = 'Times New Roman'
+        run.font.name = 'Yu Gothic'
         run.font.color.rgb = RGBColor(0, 0, 0)
     return h
+
 
 def add_para(text, bold=False, italic=False, align=None):
     p = doc.add_paragraph()
@@ -37,579 +45,461 @@ def add_para(text, bold=False, italic=False, align=None):
     run = p.add_run(text)
     run.bold = bold
     run.italic = italic
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
+    run.font.name = 'Yu Mincho'
+    run.font.size = Pt(10.5)
     return p
+
+
+def add_para_with_refs(text):
+    """Add paragraph with superscript reference numbers."""
+    p = doc.add_paragraph()
+    parts = re.split(r'(\{[^}]+\})', text)
+    for part in parts:
+        if part.startswith('{') and part.endswith('}'):
+            ref_text = part[1:-1]
+            run = p.add_run(ref_text)
+            run.font.superscript = True
+            run.font.name = 'Yu Mincho'
+            run.font.size = Pt(10.5)
+        else:
+            run = p.add_run(part)
+            run.font.name = 'Yu Mincho'
+            run.font.size = Pt(10.5)
+    return p
+
 
 # ===== TITLE PAGE =====
 add_para('')
+add_para(
+    '静脈内投与由来の薬物動態モデルは区域麻酔に適用可能か？',
+    bold=True, align=WD_ALIGN_PARAGRAPH.CENTER
+)
+add_para(
+    '局所麻酔薬の吸収に関する投与経路対応型シミュレーションの必要性',
+    bold=True, align=WD_ALIGN_PARAGRAPH.CENTER
+)
 add_para('')
-p = add_para('区域麻酔における局所麻酔薬の極量再考：', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-p = add_para('初期コンパートメント依存性薬物動態モデリングの必要性', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+add_para(
+    'Are Intravenous Pharmacokinetic Models Fit for Purpose in Regional Anesthesia? '
+    'The Case for Route-Aware Simulation of Local Anesthetic Absorption',
+    italic=True, align=WD_ALIGN_PARAGRAPH.CENTER
+)
 add_para('')
-p = add_para('および麻酔情報管理システムにおける投与経路適応型PKPDシミュレーションの提言', bold=True, align=WD_ALIGN_PARAGRAPH.CENTER)
-add_para('')
-add_para('')
-
-add_para('論文種別：Narrative Review', italic=True, align=WD_ALIGN_PARAGRAPH.CENTER)
+add_para('論文種別：Narrative Review', align=WD_ALIGN_PARAGRAPH.CENTER)
 add_para('')
 add_para('[著者名]', align=WD_ALIGN_PARAGRAPH.CENTER)
-add_para('[所属機関]', align=WD_ALIGN_PARAGRAPH.CENTER)
+add_para('[所属]', align=WD_ALIGN_PARAGRAPH.CENTER)
 add_para('')
 add_para('責任著者：', bold=True)
 add_para('[氏名、所属、住所、メールアドレス]')
 add_para('')
-add_para('本文語数：約4800語（本文のみ）')
-add_para('引用文献数：50')
-add_para('図：4')
-add_para('表：1')
+add_para('本文語数：約4200語')
+add_para('文献数：33')
+add_para('図：3')
+add_para('表：0')
 add_para('')
-
-add_para('キーワード：局所麻酔薬全身毒性；薬物動態モデリング；区域麻酔；生理学的薬物動態モデル；コンパートメントモデル；麻酔情報管理システム；極量', italic=True)
+add_para(
+    'キーワード：局所麻酔薬全身毒性；薬物動態モデリング；区域麻酔；'
+    '生理学的薬物動態学；吸収；極量；投与経路',
+    italic=True
+)
 
 doc.add_page_break()
 
-# ===== SUMMARY =====
-add_heading_text('要旨（Summary）', level=1)
+# ===== ABSTRACT =====
+add_heading_text('抄録', level=1)
 
-add_para(
-    '現行の局所麻酔薬の極量（最大推奨用量）は、薬物が中心コンパートメント（血漿）に直接投与される'
-    '静脈内投与を前提とした薬物動態モデルに基づいている。しかし、区域麻酔においては、薬物の初期沈着部位は'
-    'ブロックの成否によって根本的に異なる。成功した神経ブロックや筋膜面ブロックでは薬物は血管の乏しい組織'
-    '（vessel-poor tissue, BPT）に沈着し全身吸収は緩徐であるのに対し、不成功のブロックでは血管の豊富な組織'
-    '（vessel-rich tissue, BRT）や血管内に薬物が沈着し急速な全身吸収が生じる。この初期薬物動態コンパートメント'
-    'の相違は、最高血中濃度（Cmax）、ひいては局所麻酔薬全身毒性（LAST）のリスクに重大な影響を与える。'
-    '本稿では、区域麻酔の用量設定における従来の3コンパートメントモデルの限界を検討し、PK-SimやMoBiなどの'
-    '生理学的薬物動態（PBPK）モデリングプラットフォームによる投与経路依存性シミュレーションの可能性を論じ、'
-    '状況依存性極量（context-sensitive maximum dose）の枠組みを提案する。さらに、現代の麻酔情報管理システム'
-    '（AIMS）に組み込まれた薬物動態・薬力学（PKPD）シミュレーションモジュールは、投与経路のロジックを組み込み、'
-    '静脈内投与と区域麻酔の両方に対してリアルタイムでコンパートメント適切な用量指針を提供すべきであると提言する。'
+add_para_with_refs(
+    '局所麻酔薬の極量（最大推奨用量）は、静脈内投与または皮下投与を用いた薬物動態研究から'
+    '導出されており、薬物が中心（血漿）コンパートメントに直接入ることを前提としている。'
+    'しかし区域麻酔では、局所麻酔薬は組織（筋膜面、神経周囲腔、硬膜外腔）に沈着し、'
+    '全身循環への吸収は組織特異的な血流、結合、物理化学的性質に支配される。'
+    'その結果生じる血漿中濃度推移は、静脈内投与由来の三コンパートメントモデルが予測する'
+    'ものとは根本的に異なる。母集団薬物動態研究は一貫して、区域ブロック後の吸収が'
+    '静脈内ボーラス投与と比較して遅い吸収速度定数（ka）、遅延したTmax、低いCmaxを'
+    '示すことを報告している。このエビデンスにもかかわらず、臨床判断支援ツールに組み込まれた'
+    '薬物動態シミュレーションは静脈内由来のパラメータを区域投与経路に適用し続けており、'
+    '誤解を招く血漿中濃度予測を生成する可能性がある。本Narrative Reviewでは、'
+    '局所麻酔薬の投与経路依存的吸収のエビデンスを検討し、静脈内由来モデルが区域麻酔に'
+    '薬物動態学的に不適切である理由を説明し、PK-SimやMoBiなどの生理学的薬物動態（PBPK）'
+    'プラットフォームが投与経路対応型シミュレーションを提供しうる可能性を論じる。'
+    '本稿は現行の極量推奨の変更を主張するものではなく、区域麻酔における局所麻酔薬の'
+    '挙動を理解・予測するための薬物動態モデルが投与経路を考慮すべきであると主張する。'
 )
 
 doc.add_page_break()
 
 # ===== INTRODUCTION =====
-add_heading_text('緒言（Introduction）', level=1)
+add_heading_text('序論', level=1)
 
-add_para(
-    '局所麻酔薬全身毒性（LAST）は、区域麻酔における最も重篤な合併症の一つである。局所麻酔薬の極量'
-    '（最大推奨用量）は従来mg/kgで表現され、静脈内投与や皮下浸潤を対象とした薬物動態研究に基づいて'
-    '数十年前に設定された。1,2 これらの用量制限は、薬物が中心（血漿）コンパートメントに投入されること\u2014'
-    'すなわち静脈内投与\u2014を暗黙の前提としている。'
+add_para_with_refs(
+    '局所麻酔薬全身毒性（LAST）は区域麻酔の重篤な合併症であり、極量は重要な安全の'
+    '防波堤である。{1,2} これらの用量制限は伝統的にmg/kgで表され、数十年前に'
+    '静脈内投与および皮下投与の薬物動態データに基づいて確立された。{3,4} '
+    'これらの制限の背後にある暗黙の薬物動態学的仮定は、薬物が中心血漿コンパートメントに'
+    '速やかに入るというものであり、静脈内注射には妥当であるが、区域麻酔における'
+    '組織への沈着には必ずしも妥当ではない。'
 )
 
-add_para(
-    '麻酔薬理学で広く用いられる3コンパートメントマミラリーモデルは、中心コンパートメント（V1、血漿）から'
-    '急速平衡末梢コンパートメント（V2、血管の豊富な組織群＝BRT）および緩徐平衡末梢コンパートメント'
-    '（V3、血管の乏しい組織群＝BPT）への薬物分布を記述し、中心コンパートメントからの消失を含む。3,4 '
-    'このモデルは、プロポフォールのtarget-controlled infusion（TCI）システム（Marsh、Schnider、Eleveldモデル等）'
-    'の基盤であり、現代の麻酔情報管理システム（AIMS）におけるPKPD表示の根幹をなす。5,6'
+add_para_with_refs(
+    '麻酔薬理学で広く使用されている三コンパートメント・マミラリーモデルは、'
+    '中心コンパートメント（V1、血漿）から速い平衡に達する末梢コンパートメント'
+    '（V2、血流豊富組織）および遅い平衡に達する末梢コンパートメント'
+    '（V3、血流乏しい組織）への薬物分布を記述し、中心コンパートメントからの排泄を'
+    '含む。{5,6} このモデルはTCI（target-controlled infusion）システムおよび'
+    '麻酔情報管理システム（AIMS）の薬物動態表示の基盤である。{7,8} '
+    '重要なことに、このモデルは薬物入力がV1で起こることを仮定している。'
 )
 
-add_para(
-    'しかし区域麻酔では、薬物は静脈内に投与されるのではない。神経周囲、筋膜面、硬膜外腔といった組織に沈着し、'
-    '全身吸収は局所血流、組織結合、薬物および組織の物理化学的特性に依存する。7,8 '
-    '特に脊髄幹麻酔では薬物動態がさらに複雑となる：硬膜外投与は硬膜外脂肪への分布、硬膜透過による'
-    '脳脊髄液（CSF）への移行、および血管吸収の3経路が並行し、脊髄くも膜下（脊椎麻酔）投与は'
-    '薬物をCSFに直接注入するため、末梢経路とは全く異なる分布・吸収動態を持つ。'
-    'De Cassaiらは本誌において、筋膜面ブロックにおける局所麻酔薬の薬物動態に関する最新の知見を報告し、'
-    'エピネフリン、組織血管分布、筋膜微小解剖が全身吸収プロファイルに与える影響を明らかにした。9 '
-    '同様に、Schwenkらはリドカインが持続的なLAST関連死亡原因として台頭していることに注意を喚起した。10'
+add_para_with_refs(
+    '区域麻酔では、局所麻酔薬は組織（神経周囲腔、筋膜面、硬膜外腔）に沈着し、'
+    '全身吸収は局所血流、組織結合、薬物の脂溶性、血管収縮薬の有無に依存する。{9,10} '
+    '最近の薬物動態研究は、区域ブロック後の吸収プロファイルが静脈内投与と著しく異なり、'
+    'より遅い吸収速度、低い最高血漿中濃度、遅延したピーク到達時間を示すことを'
+    '報告している。{11-13} De Cassaiらは筋膜面ブロックの薬物動態を進展させ、'
+    'エピネフリンと組織血管性の役割を明らかにした。{14} Schwenkらはリドカインが'
+    'LAST関連死亡の持続的原因であることに注意を喚起した。{15}'
 )
 
-add_para(
-    'これらの進歩にもかかわらず、根本的な問題が十分に取り上げられていない：薬物の初期沈着部位'
-    '\u2014すなわちスタートコンパートメント\u2014が最高血中濃度にどのように影響し、安全域にどう影響するか？ '
-    'この問いへの回答は、区域麻酔における極量の意味ある議論に不可欠であり、現行の用量推奨は'
-    'この変数を考慮していないため不十分であると我々は主張する。'
+add_para_with_refs(
+    'このエビデンスの蓄積にもかかわらず、根本的な疑問は十分に探求されていない：'
+    '区域投与後の局所麻酔薬の薬物動態プロファイルが静脈内注射後のものと大きく異なるなら、'
+    '静脈内モデルから導出された血漿中濃度予測を区域投与経路に適用した場合、'
+    'それを信頼できるのか？この疑問は臨床的に直接的な意味を持つ。多発外傷に対する'
+    '多部位ブロックや両側筋膜面ブロックなどの場面で、臨床医は見かけ上の毒性なく'
+    '伝統的極量に接近または超過することがある。投与経路依存的吸収がこの安全性を'
+    '容易に説明する。しかし、この安全マージンを提供するのと同じメカニズム'
+    '——遅い組織吸収による血漿中濃度ピークの遅延——は、LASTに対するより長い'
+    '観察期間を同時に要求する。なぜなら最大リスクの時間窓が、静脈内モデルの'
+    '予測よりも後方にずれるからである。プレプリントで最初に記述した枠組み{33}に'
+    '基づき、本Narrative Reviewは投与経路が局所麻酔薬の吸収薬物動態を決定的に'
+    '規定するエビデンスを検討し、これが用量安全性とモニタリング時間の両方に'
+    '意味を持つ理由を説明し、区域麻酔に意味のある予測を生成するために'
+    '投与経路対応型薬物動態モデルが必要であると論じる。'
 )
 
-# ===== THE PROBLEM =====
-add_heading_text('初期コンパートメント問題（The initial compartment problem）', level=1)
+# ===== HOW DOSE LIMITS WERE DERIVED =====
+add_heading_text('現行の極量推奨はどのように導出されたか', level=1)
 
-add_para(
-    '同一用量の長時間作用性局所麻酔薬（例：ブピバカイン150 mg）を末梢神経ブロックとして'
-    '投与する2つの臨床シナリオを考える：'
+add_para_with_refs(
+    '現在広く使用されている局所麻酔薬の極量は、主に1960年代から1970年代に実施された'
+    '研究にその起源を持つ。{3,4} これらの基礎的研究は、静脈内注入、皮下浸潤、'
+    'または肋間神経ブロック後の血漿中濃度を測定した。これらは直接的な血管内薬物送達'
+    'または高度に血管化された組織への注入を含む技術であり、急速な全身吸収を伴う。'
+    'これらのデータから導出された用量-毒性関係は、すべての局所麻酔薬投与経路に'
+    '適用されることを意図したmg/kg制限に一般化された。{16}'
 )
 
-p = doc.add_paragraph()
-p.style = 'List Bullet'
-run = p.add_run(
-    'シナリオA（成功したブロック）：全量が標的筋膜面または神経周囲腔に正確に沈着する。組織は主に'
-    '血管の乏しい組織（脂肪、結合組織、筋膜）である。全身吸収は緩徐であり、低い吸収速度定数（ka）に'
-    '支配される。Cmaxは低値かつ遅延（高いTmax）。薬物は局所効果を発揮しつつ、全身循環への緩やかな移行に'
-    '伴い肝代謝により漸次クリアランスされる。'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-p = doc.add_paragraph()
-p.style = 'List Bullet'
-run = p.add_run(
-    'シナリオB（不成功のブロックまたは血管内注入）：薬物が血管構造内または高灌流組織（血管豊富組織群）に'
-    '沈着する。全身吸収は急速であり、静脈内投与に相当またはそれに近い。Cmaxは高値かつ早期'
-    '（低いTmax）であり、中枢神経系毒性または心血管系毒性の閾値を超える可能性がある。'
-)
-run.font.name = 'Times New Roman'
-run.font.size = Pt(12)
-
-add_para(
-    '従来の3コンパートメントモデルでは、両シナリオとも同一の極量に対して評価される\u2014血漿を初期'
-    'コンパートメントと仮定するモデルから導出された用量制限である。しかし薬物動態プロファイルは根本的に異なる。'
-    'シナリオAでは、緩徐な吸収速度により従来の制限を超える用量でもCmaxは毒性閾値を大幅に下回り、'
-    '従来の極量は不必要に保守的かもしれない。シナリオBでは、急速な全身吸収により静脈内ボーラス投与と'
-    '同等の血漿濃度が生じ、同じ極量が危険なほど寛容かもしれない。'
+add_para_with_refs(
+    'これらの制限の背後にある安全設計思想を認識することが重要である。極量は、'
+    '不慮の血管内注入や高度に血管化された注入部位からの急速吸収の可能性を含む、'
+    '最悪のシナリオを考慮して保守的に設定されている。{1,2} '
+    'この最悪ケース設計思想は臨床的に合理的である：薬物投与の時点で、'
+    '臨床医は薬物の最終的な薬物動態学的運命を保証できない。'
+    'したがって用量制限は、最も危険な吸収軌跡に対して防護的でなければならない。'
 )
 
-add_para(
-    'この非対称性は単なる理論ではない。筋膜面ブロックでは従来の体重あたりの制限を超える用量が'
-    '明らかな毒性なしに日常的に使用されている一方、11,12 稀ではあるが壊滅的なLAST事象は従来の'
-    '用量で発生し続けており、その多くは不慮の血管内注入または高度に血管に富む注入部位からの急速吸収'
-    'に起因する。13,14 この方程式で欠落している変数が、薬物沈着の初期コンパートメントである。'
+add_para_with_refs(
+    'しかし、局所麻酔薬の挙動の理解に情報を提供し、臨床判断支援ツールに'
+    '組み込まれつつある薬物動態モデルは、現代の区域麻酔診療における投与経路の'
+    '多様性を反映するよう進化していない。静脈内研究から導出された同じ三コンパートメント'
+    'パラメータが、筋膜面ブロック、末梢神経ブロック、脊髄幹技術に無差別に適用され、'
+    '組織沈着後の実際の薬物レベルとほとんど関係のない血漿中濃度予測を生成している。{17}'
 )
 
-# ===== BLOCK SUCCESS AS PK DETERMINANT =====
-add_heading_text('ブロック成功は薬物動態の決定因子である', level=1)
+# ===== EVIDENCE FOR ROUTE-DEPENDENT ABSORPTION =====
+add_heading_text('投与経路依存的吸収のエビデンス', level=1)
 
-add_para(
-    '我々は、区域ブロックの臨床的成功が投与された局所麻酔薬の薬物動態経路に関する'
-    '直接的情報を提供すると提案する。持続的な感覚・運動遮断をもたらす成功したブロックは、'
-    '薬物の相当量が標的組織（血管乏しいコンパートメント）に長期間局在していることを意味する。'
-    'これは緩徐吸収の薬物動態的証拠である：薬物は注入部位から全身循環へ急速にクリアランスされていない。'
+add_para_with_refs(
+    '区域ブロック後の局所麻酔薬の母集団薬物動態研究は一貫して、静脈内投与とは'
+    '根本的に異なる吸収動態を示してきた。Gaudreaultらは大腿神経ブロック後の'
+    'ロピバカイン薬物動態を一次吸収を伴う二コンパートメントモデルでモデル化し、'
+    '吸収速度定数（ka）が消失速度定数よりも遅いflip-flop動態を示した。{11} '
+    'この薬物動態現象——静脈内入力モデルでは捕捉不可能——は、血漿中濃度曲線の'
+    '終末相が消失ではなく吸収を反映することを意味し、濃度-時間プロファイルの'
+    '解釈を根本的に変える。'
 )
 
-add_para(
-    '逆に、急速に失敗するか十分な麻酔を達成しないブロックは、薬物が急速に吸収されたか、'
-    '標的神経から離れた部位に沈着し、血管豊富組織経路を通じて全身循環に入ったことを示唆する。'
-    '薬物動態的には、初期コンパートメントがV3（血管乏しい組織）ではなくV2（血管豊富組織）または'
-    'V1（血漿）に近いシナリオである。'
+add_para_with_refs(
+    'Lingらは前鋸筋面ブロック後のロピバカイン母集団薬物動態モデルを開発し、'
+    'やはり消失速度定数よりも実質的に低いka値を伴う遅い一次吸収を示した。{12} '
+    'Tuckerらは肋間および硬膜外投与後のブピバカインについて同様の吸収律速薬物動態を'
+    '示し、注入部位により投与後20〜45分で最高血漿中濃度に達することを示した。{13} '
+    'より最近では、De Cassaiらが筋膜面ブロックにおいてエピネフリンが吸収薬物動態を'
+    '有意に変化させ、kaとCmaxの両方を低下させることを示した——この効果は'
+    '静脈内由来モデルでは全く不可視である。{14}'
 )
 
-add_para(
-    'ブロックの有効性と薬物動態の関係は重要な臨床的意味を持つ。ブロックが何時間も臨床的に有効である場合、'
-    '血漿濃度曲線は低く平坦なプロファイルを示す\u2014薬物は全身循環に氾濫するのではなく局所に隔離されている。'
-    'このシナリオにおけるLASTリスクは、即座の血漿コンパートメント投入を仮定するモデルの予測より'
-    '本質的に低い。その帰結として、不成功のブロックは従来認識されているよりも高い毒性リスクを呈する\u2014'
-    '全量が薬物動態的に静脈内投与されたかのように振る舞う可能性があるからである。'
+add_para_with_refs(
+    'これらの差の大きさは臨床的に有意である。成功した筋膜面ブロック後に報告された'
+    'ka値は0.02〜0.08 min\u207b\u00b9であり、静脈内モデルが仮定する実質的に瞬時の'
+    '入力（ka→∞）と比較される。{11-14} 結果として得られるCmaxは同一用量に対して'
+    '静脈内入力モデルの予測より3〜5倍低く、Tmaxは30〜60分遅延する可能性がある。{13,18} '
+    '図1は静脈内三コンパートメントモデルと区域麻酔に適したデポ増強モデルの構造的差異を'
+    '示す。図2は投与経路特異的吸収パラメータを組み込むことで生じるCmaxとTmaxの'
+    '顕著な差異を示すシミュレーション血漿中濃度推移を提示する。'
 )
 
-# ===== LIMITATIONS =====
-add_heading_text('区域麻酔に対する従来の3コンパートメントモデルの限界', level=1)
+# ===== WHY IV MODELS FAIL =====
+add_heading_text('静脈内由来モデルが区域麻酔に不適切である理由', level=1)
 
-add_para(
-    '臨床麻酔で使用される3コンパートメントモデル（プロポフォールのMarsh、Schnider、Eleveld；'
-    'レミフェンタニルのMinto、Kim、Eleveld）は静脈内投与用に開発された。3-6 '
-    'これらは薬物が中心コンパートメントに入った後の分布を記述するものであり、修正なしに'
-    '区域麻酔の薬物動態をモデル化するには本質的に不適切である。'
+add_para_with_refs(
+    '静脈内由来薬物動態モデルの区域麻酔への適用は、単に不正確であるだけでなく、'
+    '構造的に誤りである。いくつかの具体的な限界を強調する。'
 )
 
-add_para(
-    'いくつかの具体的限界を強調する。第一に、これらのモデルにはデポまたは吸収コンパートメントがない。'
-    '区域麻酔では、薬物は注入部位から吸収されてから血漿に入る必要があり、その過程は'
-    '注入部位、組織血管分布、血管収縮薬の使用、および個々の患者因子によって異なる'
-    '吸収速度定数（ka）と生体利用率（F）によって特徴付けられる。15,16 '
-    '第二に、コンパートメント間速度定数（k12、k21、k13、k31）はIV投与データから推定されており、'
-    '薬物が末梢組織デポから出発する場合の薬物移動動態を正確に反映しない可能性がある。'
-    '第三に、蛋白結合動態はIVボーラス投与（遊離薬物分画が急激にスパイクする）と'
-    '緩徐な組織吸収（蛋白結合能が飽和しない）との間で重要な差異がある。17'
+add_para_with_refs(
+    '第一に、静脈内モデルにはデポまたは吸収コンパートメントがない。区域麻酔では、'
+    '薬物は血漿に入る前にまず注入部位から吸収されなければならず、このプロセスは'
+    '注入部位、組織血管性、血管収縮薬の使用、患者因子により変動する吸収速度定数（ka）'
+    'と生物学的利用能（F）により特徴づけられる。{9,10} '
+    'このコンパートメントなしには、モデルは組織沈着後の血漿中濃度プロファイルを'
+    '支配する律速段階を表現できない。'
 )
 
-add_para(
-    '区域ブロック後の局所麻酔薬の母集団薬物動態研究は、一次吸収を伴うデポコンパートメントを'
-    '組み込むことでこれらの限界の一部に対処してきた。18-20 '
-    'Gaudreaultらは大腿神経ブロック後のロピバカイン薬物動態を一次吸収を伴う2コンパートメントモデルで'
-    'モデル化し、吸収速度が消失速度より遅いflip-flop動態を示した。18 '
-    '最近では、Lingらがserratus anterior plane block後のロピバカインの母集団薬物動態モデルを'
-    'NONMEMで開発した。19 これらの研究は一貫して、区域ブロック後の薬物動態プロファイルが'
-    'IV投与と著しく異なることを示しているが、それらの知見は改訂された用量推奨に反映されていない。'
+add_para_with_refs(
+    '第二に、標準的三コンパートメントモデルのコンパートメント間速度定数'
+    '（k12、k21、k13、k31）は静脈内投与データから推定された。{5-8} '
+    'これらのパラメータは薬物がすでに血漿に入った後の再分布を記述する。'
+    '薬物が末梢組織デポに由来する場合、系の初期条件は根本的に異なり、'
+    '再分布動態は同じ軌跡に従わない可能性がある。'
 )
 
-# ===== PBPK =====
-add_heading_text('生理学的薬物動態モデリング：投与経路適応型アプローチ', level=1)
+add_para_with_refs(
+    '第三に、蛋白結合動態が静脈内ボーラス投与（結合容量が一時的に飽和され'
+    '遊離薬物分率が急上昇する）と遅い組織吸収（薬物が緩徐に血漿に入るため'
+    '蛋白結合は飽和されない）の間で異なる。{19} '
+    'この差を考慮しない静脈内由来モデルは区域投与後の遊離薬物濃度を過大評価する。'
+)
 
-add_para(
-    '生理学的薬物動態（PBPK）モデルは、薬物分布のシミュレーションに根本的に異なるアプローチを提供する。'
-    '経験的に推定された移行定数を持つ抽象的なコンパートメントではなく、PBPKモデルは身体を解剖学的・'
-    '生理学的に定義された臓器コンパートメントに分割し、それぞれが既知の血流、組織容積、分配係数、'
-    '代謝能で特徴付けられる。21,22 このメカニスティックな枠組みは、薬物の初期沈着部位を指定することで、'
+add_para_with_refs(
+    '第四に、脊髄幹技術では追加的な複雑性が生じる。硬膜外投与は硬膜外脂肪'
+    '（デポ）を介した吸収、脳脊髄液への硬膜通過、硬膜外静脈叢からの血管吸収を'
+    '同時に含む。{9,20} この多経路吸収は修正された吸収パラメータを持つデポモデルで'
+    '近似できるが、直接的血漿入力を仮定するモデルでは全く表現できない。'
+)
+
+add_para_with_refs(
+    'これらの構造的欠陥の結果、静脈内由来モデルは吸収が遅い区域投与経路に適用した場合、'
+    'Cmaxを系統的に過大評価し、Tmaxを過小評価する。逆に、吸収が予想外に速い状況'
+    '（例：高度に血管化された組織面への注入）を識別することもできない。'
+    'いずれの場合も、モデルは臨床的現実を反映しない予測を生成する。{17,18}'
+)
+
+# ===== PBPK APPROACH =====
+add_heading_text('生理学的薬物動態モデリング：投与経路適応型の枠組み', level=1)
+
+add_para_with_refs(
+    '生理学的薬物動態（PBPK）モデルは薬物体内動態のシミュレーションに根本的に'
+    '異なるアプローチを提供する。経験的に推定された移行定数を持つ抽象的コンパートメント'
+    'を使用する代わりに、PBPKモデルは身体を解剖学的・生理学的に定義された臓器'
+    'コンパートメントに分割し、各々が既知の血流、組織容積、分配係数、代謝能力により'
+    '特徴づけられる。{21,22} この機構的枠組みは薬物沈着の初期部位を指定することにより、'
     '異なる投与経路を自然に収容する。'
 )
 
-add_para(
-    'PK-SimとMoBiから構成されるOpen Systems Pharmacology（OSP）プラットフォームは、無料で利用可能な'
-    'オープンソースのPBPKモデリングスイートであり、欧州医薬品庁による適格性認定を受け、'
-    '医薬品開発と規制科学で広く使用されている。23,24 PK-Simは、事前定義された臓器コンパートメント'
-    '（動脈血・静脈血、肺、心臓、筋肉、脂肪、皮膚等を含む）を持つ全身PBPKモデルの構築に'
-    'グラフィカルインターフェースを提供し、MoBiはユーザー定義のコンパートメントと'
-    '輸送プロセスによるカスタムモデル構築を可能にする。'
+add_para_with_refs(
+    'Open Systems Pharmacology（OSP）プラットフォームはPK-SimとMoBiから構成される'
+    'オープンソースのPBPKモデリングスイートであり、欧州医薬品庁により承認され、'
+    '医薬品開発と規制科学で広く使用されている。{23,24} '
+    'PK-Simは静脈内、筋肉内、皮下注射を含む複数の投与経路をサポートし、'
+    '各々に投与経路特異的吸収モデルを持つ。{25}'
 )
 
-add_para(
-    '我々の目的にとって重要なのは、PK-Simが静脈内、筋肉内、皮下注射を含む複数の投与経路を'
-    'サポートし、それぞれに経路特異的吸収モデルが組み込まれている点である。25 '
-    '筋肉内および皮下経路は組織特異的吸収動態を持つデポコンパートメントを組み込んでいる。'
-    '類似的に、神経周囲または筋膜面注入は、注入部位に適切な特性を持つ組織コンパートメント'
-    '（例：筋膜組織には低血流、高度血管化された神経周囲構造には高血流）への薬物沈着として'
-    'モデル化できる。MoBiはさらに、完全にカスタムなコンパートメントと初期条件の定義を可能にし、'
-    '上述の3つの臨床シナリオ（成功したブロック、不成功のブロック、部分的ブロック）を'
-    '初期コンパートメントと各コンパートメントへの用量分配比率を変えることでシミュレーション可能である。'
+add_para_with_refs(
+    '区域麻酔への応用として、PK-SimとMoBiは注入部位に適した特性を持つ組織'
+    'コンパートメントへの薬物沈着をモデル化するよう構成できる——例えば、'
+    '筋膜組織の低血流（筋膜面ブロックの近似）や、血流豊富な神経周囲構造の'
+    '高血流。{25} MoBiはカスタムコンパートメントと初期条件の定義を可能にし、'
+    '公表された母集団薬物動態データから導出された部位特異的パラメータを用いた'
+    '各種区域麻酔注入部位からの吸収シミュレーションを可能にする。{11-14}'
 )
 
-add_para(
-    'この概念を図1に示す。図1では、従来のIV 3コンパートメントモデルと、成功した区域ブロック'
-    'および不成功の区域ブロックの修正モデルを比較している。図2は各シナリオのシミュレーションされた'
-    '血漿濃度\u2013時間プロファイルを示し、薬物沈着の初期コンパートメントを変えることでCmaxとTmaxに'
-    '生じる顕著な差異を示している。'
+add_para_with_refs(
+    'PBPKアプローチの実用的価値は、特定の投与経路に適切な血漿中濃度予測を'
+    '生成することにある。単一モデルを普遍的に適用する代わりに、シミュレーションは'
+    '記録されたブロック種別に適切な吸収パラメータを選択し、実際の薬物動態軌跡を'
+    '反映する予測を生成する。図3は投与経路特異的薬物動態シミュレーションのための'
+    'PBPKベースのワークフローを提案する。'
 )
 
-# ===== AIMS =====
-add_heading_text('麻酔情報管理システムへの統合', level=1)
-
-add_para(
-    '現代のAIMSはリアルタイムPKPDシミュレーションを組み込みつつあり、プロポフォールや'
-    'レミフェンタニルなどの静脈内薬剤の予測血漿濃度・効果部位濃度を表示している。5,26 '
-    'これらの表示は3コンパートメントモデル（Eleveld、Schnider等）によって駆動され、'
-    '全ての薬物が中心コンパートメントに静脈内投与されることを前提としている。'
-    'この仮定は全静脈麻酔（TIVA）やTCIには妥当であるが、同じシステムが区域麻酔で'
-    '投与された局所麻酔薬の用量追跡に使用される場合には正しくなくなる。'
+add_para_with_refs(
+    'このアプローチの技術的実現可能性はいくつかの観察により支持される。'
+    'デポ増強コンパートメントモデルの数学的枠組みは確立されており計算コストが'
+    '低い。{11-13} 各種区域技術後の局所麻酔薬の母集団薬物動態パラメータは'
+    '文献で利用可能性が増しており、投与経路特異的モデルのパラメータ化に必要な'
+    'データを提供する。{9,10,12,14} 現代のAIMSは静脈内薬剤のリアルタイム'
+    '薬物動態シミュレーションを既に実装しており、計算インフラが存在することを'
+    '示している。{7,8} 主要な障壁は技術的ではなく概念的である：単一の薬物動態'
+    'モデルが根本的に異なる投与経路にわたって薬物挙動を適切に記述できないという'
+    '認識である。'
 )
 
-add_para(
-    '我々は、AIMSの開発元およびベンダーが、記録された投与経路に基づいて薬物動態モデルを'
-    '調整する投与経路適応型PKPDシミュレーションを実装すべきであると提言する。'
-    '具体的には、システムは以下を行うべきである：'
+# ===== SAFETY STATEMENT =====
+add_heading_text('安全性に関する考慮事項', level=1)
+
+add_para_with_refs(
+    '本レビューが現行の局所麻酔薬極量の超過または変更を主張するものではないことを'
+    '明確に述べることが不可欠である。既存の用量制限は、不慮の血管内注入を含む'
+    '最悪の薬物動態シナリオに対して防護するよう設計されており、この保守的アプローチは'
+    '臨床的に適切である。{1,2} 薬物投与の時点で、臨床医は注入された用量の最終的な'
+    '薬物動態学的運命を保証できない。用量制限はしたがって最も危険な吸収軌跡に対して'
+    '防護的であり続けなければならない。'
 )
 
-items_jp = [
-    '局所麻酔薬の投与記録において、静脈内投与と区域麻酔投与を区別する。',
-    '投与経路に適した薬物動態モデルを適用する：IV投与には標準3コンパートメントモデル、'
-    '区域麻酔にはデポ増強モデル（特定のブロック種別に適した吸収速度定数と生体利用率を持つ）を使用。',
-    'ブロック種別特異的な吸収パラメータを提供する。各区域麻酔手技について公表された'
-    '母集団薬物動態データに基づく（例：TAPブロック、ESPブロック、大腿神経ブロック、硬膜外麻酔）。',
-    '実際の投与経路を反映した予測血漿濃度推移を表示し、再投与や累積用量制限に関する'
-    '情報に基づいた臨床判断を可能にする。',
-    'ブロック成功の臨床指標（例：感覚検査結果）に基づいてリアルタイムでモデルを調整する'
-    'メカニズムを組み込み、成功ブロック（緩徐吸収）と不成功ブロック（急速吸収）の'
-    '薬物動態プロファイル間で切り替える。',
-]
-for item in items_jp:
-    p = doc.add_paragraph()
-    p.style = 'List Number'
-    run = p.add_run(item)
-    run.font.name = 'Times New Roman'
-    run.font.size = Pt(12)
-
-add_para(
-    '図3は、PBPK Based の状況依存性極量決定のためのワークフローを示す。'
-    '図4は、投与経路適応型PKPDシミュレーションがAIMS表示にどのように統合されうるかの'
-    '概念的模式図を示し、薬物動態モデルが記録された投与経路とブロック種別に基づいて'
-    '自動的に調整される仕組みを提示している。'
+add_para_with_refs(
+    'ここで提示する議論は用量制限改訂の呼びかけとは異なる。'
+    '筆者は、局所麻酔薬の血漿中濃度を理解、予測、表示するために使用される'
+    '薬物動態モデルが、採用されている投与経路に対して正確であるべきだと主張する。'
+    '静脈内由来モデルを使用して区域投与経路の予測を生成することは、異なる種類の'
+    'リスクを生み出す：臨床医が有意義と解釈する可能性のある数値を生成するが、'
+    'それらは実際には臨床的文脈に構造的に不適切である。筋膜面ブロック後の'
+    '静脈内入力モデルからの血漿中濃度予測は、高すぎるまたは低すぎるから'
+    '誤りなのではなく、問題となっている薬物動態系を表現していないから誤りなのである。'
 )
 
-add_para(
-    'このアプローチの技術的実現可能性はいくつかの観察によって支持される。第一に、'
-    'デポ増強コンパートメントモデルの数学的枠組みは確立されており、計算コストが低い。18-20 '
-    '第二に、各種区域麻酔手技後の局所麻酔薬の母集団薬物動態パラメータが文献で増加しており、'
-    '経路特異的モデルのパラメータ化に必要なデータを提供している。7,8,19 '
-    '第三に、現代のAIMSは既に静脈内薬剤のリアルタイムPKPDシミュレーションを実装しており、'
-    '計算インフラは存在する。主要な障壁は技術的ではなく概念的である：単一の薬物動態モデルでは'
-    '根本的に異なる投与経路にわたる薬物挙動を適切に記述できないという認識である。'
+add_para_with_refs(
+    '投与経路対応型薬物動態モデリングは、バリデーションされれば、安全性を損なうことなく'
+    '臨床的理解を改善しうる。区域ブロック後の血漿中濃度データの解釈、薬物動態研究の'
+    '設計、将来的な用量最適化に関するエビデンスに基づく議論のための、より正確な科学的'
+    '枠組みを提供するだろう。'
 )
 
-# ===== CONTEXT-SENSITIVE MAX DOSE =====
-add_heading_text('状況依存性極量（Context-sensitive maximum dose）に向けて', level=1)
+# ===== CLINICAL IMPLICATIONS: MONITORING WINDOWS =====
+add_heading_text('臨床的意義：ピーク遅延とモニタリング窓', level=1)
 
-add_para(
-    '我々は、静脈内薬物のオフセットの理解を革新したcontext-sensitive half-time'
-    '（状況依存性半減期）に類似する、局所麻酔薬のcontext-sensitive maximum dose'
-    '（状況依存性極量）の概念を提案する。27 '
-    'context-sensitive half-timeが薬物投与の期間と状況によって変動するように、'
-    '局所麻酔薬の実効最大安全用量も投与の状況\u2014具体的には投与経路、特定のブロック種別、'
-    '薬物沈着の成否、および個々の患者因子\u2014によって変動すべきである。'
+add_para_with_refs(
+    '投与経路依存的吸収動態の即座の臨床的帰結のひとつは、LASTモニタリングの'
+    'タイミングに関するものである。静脈内由来モデルを局所麻酔薬薬物動態の概念化に'
+    '使用する場合、最高血漿中濃度は投与後数分以内に生じると予想される——静脈内ボーラス'
+    '動態と一致する。LASTに対する現行のモニタリング推奨はこの仮定を反映しており、'
+    '観察期間は典型的には注入後15〜30分に集中している。{1,31} '
+    'しかし組織デポからの吸収が母集団薬物動態研究で報告された低いka値'
+    '（0.02〜0.08 min\u207b\u00b9）に従う一次動態に従えば、真のTmaxは'
+    'かなり遅く——しばしば注入後30〜60分以上——に生じる。{11-14,18}'
 )
 
-add_para('この枠組みでは、極量は単一の固定値ではなく、臨床シナリオに依存する範囲となる：')
-
-# Table 1
-table = doc.add_table(rows=6, cols=4)
-table.style = 'Table Grid'
-headers = ['シナリオ', '初期コンパートメント', '予測Cmax', '用量調整']
-for i, h in enumerate(headers):
-    cell = table.rows[0].cells[i]
-    cell.text = h
-    for paragraph in cell.paragraphs:
-        for run in paragraph.runs:
-            run.bold = True
-            run.font.name = 'Times New Roman'
-            run.font.size = Pt(10)
-
-data = [
-    ['成功したブロック\n（神経周囲/筋膜面）', 'BPT（V3）\n血管乏しい組織', '低値、遅延', 'より高用量が\n安全な可能性'],
-    ['部分的ブロック', '混合\n（BPT + BRT/血漿）', '中間', '標準的極量\nが適用'],
-    ['不成功のブロック\n（血管豊富組織沈着）', 'BRT（V2）\n血管豊富組織', '中等度〜高値、\n早期', 'より低用量が\n必要な可能性'],
-    ['血管内注入', '血漿（V1）', '非常に高値、\n即時', '従来のIV極量\nが適用'],
-    ['硬膜外投与', 'デポ（多経路）\n脂肪+硬膜透過+血管吸収', '中間値、\n遅延', 'デポモデルで\n十分に近似可能'],
-]
-for r, row_data in enumerate(data):
-    for c, val in enumerate(row_data):
-        cell = table.rows[r+1].cells[c]
-        cell.text = val
-        for paragraph in cell.paragraphs:
-            for run in paragraph.runs:
-                run.font.name = 'Times New Roman'
-                run.font.size = Pt(10)
-
-add_para('')
-add_para('表1. 区域麻酔における局所麻酔薬の状況依存性極量の枠組み。', italic=True)
-
-add_para(
-    'このアプローチはいくつかの重要な現実を認識している。第一に、薬物動態学的エビデンスは、'
-    '吸収が緩徐で予測可能な筋膜面ブロックでのより高用量を支持する。9,11 '
-    '第二に、区域麻酔の実臨床で従来の用量制限を頻繁に超えているにもかかわらず'
-    'LASTが稀であるという経験的観察に合理的根拠を提供する。12 '
-    '第三に、全身吸収が急速なシナリオ\u2014不成功のブロックと血管内注入\u2014を特定し、'
-    '保守的用量制限の遵守と注意深いモニタリングが最も重要である状況を明確にする。'
+add_para_with_refs(
+    'この時間的ずれは患者安全に直接的な意味を持つ。筋膜面ブロック後30分で'
+    'LASTモニタリングを終了する臨床医は——高リスク窓が過ぎたと判断して——'
+    '実際には最高血漿中濃度に到達する前に患者を退室させている可能性がある。'
+    '投与経路対応型薬物動態モデリングはこの不一致を可視化する：適切な吸収速度定数を'
+    '組み込んだシミュレーションはより遅いTmaxを予測し、より長く適切にタイミングされた'
+    '観察期間の情報を提供する。これは静脈内由来モデルが単に不正確な予測ではなく'
+    '潜在的に危険な予測を生成する具体的な臨床シナリオを表す——用量リスクを'
+    '過大評価するからではなく、リスクを時間軸上で誤って位置づけるからである。'
 )
 
-# ===== EPIDURAL AND SPINAL CONSIDERATIONS =====
-add_heading_text('脊髄幹麻酔に関する考察：硬膜外麻酔と脊髄くも膜下麻酔', level=1)
-
-add_para(
-    '上述の枠組みは主に末梢神経ブロックと筋膜面ブロックに焦点を当てており、'
-    '初期コンパートメントを血管乏しい組織（成功したブロック）または血管豊富組織/血漿'
-    '（不成功のブロック）として合理的に近似できる。しかし、2つの脊髄幹経路\u2014硬膜外投与'
-    'と脊髄くも膜下（脊椎麻酔）投与\u2014は、それぞれの薬物動態がコンパートメントモデリングに'
-    '固有の課題を提示するため、個別の考察が必要である。'
+add_para_with_refs(
+    '逆に、大きな累積用量が複数部位にわたって投与される場合（多発外傷や多部位'
+    '筋膜面ブロックのように）、各注入部位からの遅延吸収プロファイルの重畳は、'
+    '最終注入よりかなり後に生じる累積Cmaxを産生する可能性がある。'
+    '静脈内入力モデルは最高リスク期間が最終投与直後に生じると予測するが、'
+    '投与経路対応型モデリングは複数の吸収曲線の遅延収束を最大の懸念期間として'
+    '正しく識別する。{32}'
 )
 
-add_para(
-    '硬膜外への局所麻酔薬投与は、硬膜外腔に薬物が沈着し、3つの並行する吸収経路を経る：'
-    '（i）硬膜外脂肪組織への分布\u2014緩徐な放出を伴う局所デポとして機能する；'
-    '（ii）硬膜を透過した脳脊髄液（CSF）への移行\u2014ここで脊髄神経根にアクセスし'
-    '神経遮断を生じさせる；（iii）豊富な硬膜外静脈叢からの血管吸収による全身循環への移行。15,16 '
-    '重要なことに、この多経路吸収は一次吸収動態（ka）を持つデポコンパートメントモデルで'
-    '十分に近似可能であり、上述の末梢ブロックモデルと類似している。'
-    '実際に、硬膜外局所麻酔薬の母集団薬物動態研究ではデポ増強コンパートメントモデルが'
-    '成功裏に使用されており、このアプローチの妥当性が検証されている。20 '
-    'したがって、デポモデルは本稿で提案する初期コンパートメントパラダイムにおいて、'
-    '硬膜外投与に対する十分かつ実用的な枠組みを提供する。硬膜外投与は'
-    '成功した筋膜面ブロック（純粋な血管乏しい組織）と不成功のブロック（急速な血管吸収）の'
-    '中間的な吸収特性を持つデポスタートシナリオとして位置づけることができ、'
-    '硬膜外腔の混合的性質を反映している。より精巧な多経路モデルは3つの並行吸収経路の'
-    'シミュレーションをさらに精緻化できるが、デポ近似は臨床的用量ガイダンスおよび'
-    '本枠組みへの統合に十分である。'
+# ===== FUTURE DIRECTIONS =====
+add_heading_text('今後の展望', level=1)
+
+add_para_with_refs(
+    '区域麻酔のための投与経路対応型薬物動態モデリングの進展にはいくつかの面での'
+    '進歩が必要である。第一に、各種区域ブロック後の血漿中濃度プロファイルの系統的'
+    '測定が必要であり、吸収パラメータ（ka、Tmax、Cmax、生物学的利用能）の標準化された'
+    '報告により研究間比較とモデルパラメータ化を可能にすべきである。{26,27} '
+    '第二に、注入部位からの組織特異的吸収を組み込んだ局所麻酔薬のPBPKモデルを開発し、'
+    'PK-SimやMoBiなどのプラットフォームを用いて公表された臨床データに対して'
+    'バリデーションすべきである。{23-25} 第三に、患者特異的因子（体組成、年齢、'
+    '肝機能）および技術特異的因子（血管収縮薬使用、注入量、超音波確認下での'
+    '薬液拡散）の吸収パラメータへの影響を特徴づけるべきである。{14,28}'
 )
 
-add_para(
-    '脊髄くも膜下麻酔（脊椎麻酔）は本レビューの主要分析には含めなかった。'
-    'くも膜下投与は薬物をCSFに直接注入するが、CSFは現在の枠組みの4つのコンパートメント'
-    '（血漿、BRT、BPT、デポ）のいずれにも正確に対応しない独自の薬物動態コンパートメントである。'
-    'CSF内での薬物分布は比重（baricity）、患者体位、CSF容量、脊柱弯曲度などの因子に支配され、'
-    '従来のコンパートメントモデルでは捉えられない。16 '
-    'さらに、脊髄くも膜下麻酔はほぼ例外なく単回投与として施行され、'
-    '使用される薬物量は少量（例：ブピバカイン10\u201315 mg）であるため、'
-    'くも膜下投与単独による全身毒性は極めて稀である。'
-    'これらの理由\u2014CSF分布の薬物動態学的独自性、使用される少量、'
-    'および主に単回投与である手技の性質\u2014から、我々は初期コンパートメント枠組みから'
-    '脊髄くも膜下麻酔を意図的に除外した。CSFコンパートメントを含めるためにモデルを拡張することは、'
-    '全身毒性と極量の問題に対して臨床的利益に見合わない相当な複雑性を加えることになる。'
+add_para_with_refs(
+    '長期的には、バリデーションされた投与経路特異的モデルをAIMS内の臨床判断支援'
+    'ツールに組み込むことが可能であり、記録された投与経路に適切な薬物動態予測を'
+    '提供できる。{29,30} そのようなツールは既存の用量制限を補完し——置き換えるのではなく'
+    '——特定の臨床シナリオに較正された追加的な薬物動態情報層を臨床医に提供する。'
+    'しかし臨床システムへの統合は、前向き薬物動態データに対する投与経路特異的'
+    'モデルの厳格なバリデーションを待つべきである。'
 )
 
-# ===== CLINICAL IMPLICATIONS =====
-add_heading_text('臨床的意義と今後の方向性', level=1)
+# ===== LIMITATIONS =====
+add_heading_text('限界', level=1)
 
-add_para(
-    '初期コンパートメント依存性薬物動態モデリングの意義は用量計算を超えて広がる。'
-    'ブロック成功が臨床評価から推定可能であれば（例：予測される時間枠内での感覚ブロック発現）、'
-    '臨床医はこの情報を用いてLASTのリスク評価をリアルタイムで更新できる。'
-    '成功が確認されたブロックは低リスクの薬物動態推移を示し、ブロック不成功の場合は'
-    '警戒を高め、追加投与の安全性を検討すべきである。'
+add_para_with_refs(
+    '本Narrative Reviewのいくつかの限界を認めるべきである。特定の区域注入部位からの'
+    '局所麻酔薬吸収の薬物動態パラメータは不完全にしか特徴づけられておらず、'
+    '公表されたデータは少数のブロック種別と患者集団に限定されている。'
+    '組織血管性、蛋白結合、肝クリアランスの個人間変動は、静脈内由来であれ'
+    '投与経路特異的であれ、いかなるシミュレーションにも実質的な不確実性をもたらす。{19} '
+    'さらに、ブロックの臨床的成功——薬物のどの割合が血流乏しい組織に残留するか'
+    '対急速に吸収されるかを決定する——は注入時点で正確に決定できず、'
+    'いかなる注入部位からの吸収も離散的シナリオではなく連続体上に存在する。{31}'
 )
 
-add_para(
-    '今後の研究はいくつかの優先事項に焦点を当てるべきである。第一に、ブロック成功の同時記録を伴う、'
-    '各種区域ブロック後の血漿濃度プロファイルの系統的測定が、コンパートメント特異的吸収モデルの'
-    'パラメータ化に必要である。第二に、PK-SimやMoBiなどのプラットフォームを用いて、'
-    '注入部位からの組織特異的吸収を組み込んだ局所麻酔薬のPBPKモデルを開発し、'
-    '臨床データに対して検証すべきである。第三に、AIMSベンダーを投与経路適応型'
-    'PKPDシミュレーション機能の開発に参画させるべきであり、当初は研究ツールとして、'
-    '最終的には臨床意思決定支援として実装する。第四に、規制当局および専門学会は、'
-    '現行の固定用量極量推奨を、投与経路と部位を考慮した状況依存性ガイドラインで'
-    '補完または置換すべきかを検討すべきである。'
-)
-
-add_para(
-    'ここで提案する枠組みのいくつかの限界を認識する。特定の注入部位からの局所麻酔薬の'
-    '組織吸収に関する薬物動態パラメータは不完全にしか特徴付けられていない。'
-    'ブロック成功は二値状態ではなくスペクトラムであり、血管乏しい組織対血管豊富組織への'
-    '薬物沈着比率は臨床的に正確に決定できない。組織血管分布、蛋白結合、肝クリアランスの'
-    '個人差がさらなる不確実性をもたらす。上述のとおり、硬膜外投与は多経路吸収を有するが'
-    'デポコンパートメントモデルで十分に近似可能であり、一方で脊髄くも膜下麻酔は'
-    'CSF薬物動態の独自性と使用される少量のため本枠組みから除外した。'
-    'それでも、初期コンパートメントへの薬物動態の'
-    '根本的依存性を、不完全にであっても認識することは、それを完全に無視する現行の'
-    'アプローチに対する大きな前進であると我々は信じる。'
+add_para_with_refs(
+    'ここで記述したPBPKアプローチは区域麻酔への応用についてまだバリデーションされて'
+    'いない。OSPプラットフォームは経口および静脈内薬物投与について広範なバリデーションを'
+    '持つが、{23,24} 区域麻酔注入部位からの組織デポ吸収への応用には'
+    '専用のバリデーション研究が必要である。そのようなバリデーションが完了するまで、'
+    '投与経路特異的シミュレーションは臨床的に処方的ではなく仮説生成的と'
+    '見なされるべきである。'
 )
 
 # ===== CONCLUSION =====
-add_heading_text('結論（Conclusions）', level=1)
+add_heading_text('結論', level=1)
 
-add_para(
-    '薬物沈着の初期コンパートメントは、区域麻酔における局所麻酔薬の薬物動態の重要ではあるが'
-    '看過されてきた決定因子である。成功したブロックは薬物を血管乏しい組織に沈着させ緩徐な'
-    '全身吸収をもたらす一方、不成功のブロックは静脈内投与に近似する可能性がある。'
-    'IV系薬物動態モデルから導出された現行の極量はこの根本的差異を考慮しておらず、'
-    '成功したブロックに対しては過度に保守的であると同時に、不成功のブロックには'
-    '不十分である可能性がある。'
+add_para_with_refs(
+    '区域麻酔において局所麻酔薬に現在適用されている薬物動態モデルは静脈内投与データ'
+    'から導出され、中心血漿コンパートメントへの直接的薬物入力を仮定している。'
+    'この仮定は区域技術に対して構造的に不正確であり、薬物は組織に沈着し、'
+    '部位特異的因子により決定される速度で吸収される。母集団薬物動態研究は一貫して、'
+    '区域ブロック後の吸収が静脈内予測と比較してより低いCmax値、遅延したTmax、'
+    '異なる全体的曝露プロファイルを産生することを示している。'
 )
 
-add_para(
-    'PK-SimやMoBiなどのPBPKモデリングプラットフォームは、投与経路依存性薬物動態を'
-    'シミュレートし状況依存性用量推奨を策定するツールを提供する。さらに、AIMSに組み込まれた'
-    'PKPDシミュレーションモジュールは、投与経路のロジックを組み込むよう適応されるべきであり、'
-    '普遍的なIV仮定ではなく実際の臨床シナリオを反映した薬物動態予測を臨床医に提供すべきである。'
-    '我々は、麻酔研究コミュニティ、AIMS開発者、および専門学会に対し、'
-    '区域麻酔の安全性と有効性の向上を最終目標としてこれらの目標を追求するよう呼びかける。'
+add_para_with_refs(
+    '投与経路依存的吸収には不可分の二つの臨床的帰結がある。一方では、遅い組織吸収は'
+    '臨床医が特定の筋膜面ブロックや末梢神経ブロックにおいて全身毒性を惹起することなく'
+    '伝統的制限を超える用量を投与できる理由を説明する——静脈内由来モデルは'
+    'これらのシナリオの真のCmaxを過大評価している。他方では、同じ遅延吸収は'
+    '最高血漿中濃度が静脈内モデルの予測よりも遅く生じることを意味し、'
+    '真の最大リスク窓を捕捉するために延長されたモニタリング期間を必要とする。'
+    'これらは同一の薬物動態コインの表裏であり、両方とも適切な理解のために'
+    '投与経路対応型モデリングを必要とする。'
+)
+
+add_para_with_refs(
+    'PK-SimやMoBiなどのPBPKプラットフォームは薬物沈着の初期部位を考慮する'
+    '投与経路対応型シミュレーションを開発するための機構的枠組みを提供する。'
+    '現行の極量推奨に引き続き従うべきであるが、区域麻酔における局所麻酔薬の'
+    '挙動の理解の基盤をなす薬物動態科学は、投与経路を基本的なモデルパラメータとして'
+    '組み込むよう進化しなければならない。より良いモデルは用量安全性のより正確な'
+    '評価とモニタリング時間のより適切な決定の両方をもたらし、区域麻酔診療の'
+    '有効性と安全性の両方を前進させる。'
 )
 
 # ===== DECLARATIONS =====
-add_heading_text('利益相反（Declaration of interest）', level=1)
-add_para('[著者により記載]')
+add_heading_text('利益相反', level=1)
+add_para('著者は利益相反がないことを宣言する。')
 
-add_heading_text('資金源（Funding）', level=1)
-add_para('[著者により記載]')
+add_heading_text('資金', level=1)
+add_para('本研究は外部資金を受けていない。')
 
-add_heading_text('著者の貢献（Authors\u2019 contributions）', level=1)
-add_para('[著者により記載]')
-
-add_heading_text('謝辞（Acknowledgements）', level=1)
-add_para('[著者により記載]')
-
-add_heading_text('生成AIの使用に関する宣言', level=1)
+add_heading_text('謝辞', level=1)
 add_para(
-    '[BJAのポリシーに従い、AI ツールの使用を宣言する必要があります。'
-    'AI文章作成支援ツールを使用した場合は、その役割をここに記述してください。]'
+    '本研究の着想と構想が練られた環境を提供してくれた'
+    'Caff\u00e8 Punteggiaturaに感謝する。'
 )
 
-doc.add_page_break()
-
-# ===== FIGURE LEGENDS =====
-add_heading_text('図の説明（Figure Legends）', level=1)
-
+add_heading_text('生成AI使用に関する宣言', level=1)
 add_para(
-    '図1. 3つの臨床シナリオにおけるコンパートメントモデルの比較。'
-    '（A）薬物が中心血漿コンパートメント（V1）に投入される従来の静脈内3コンパートメントモデル。'
-    '（B）薬物が血管乏しい組織（BPT）に近似するデポコンパートメントに沈着し、'
-    '血漿への緩徐な一次吸収を伴う成功した区域ブロックモデル。'
-    '（C）薬物が血漿（V1）または血管豊富組織（BRT）に直接投入される不成功のブロックまたは'
-    '血管内注入モデル。BRT, 血管豊富組織; BPT, 血管乏しい組織; CL, クリアランス; '
-    'ka, 吸収速度定数。', italic=True
-)
-add_para('')
-add_para(
-    '図2. 異なる投与経路での局所麻酔薬のシミュレートされた血漿濃度\u2013時間プロファイル。'
-    '青の実線は静脈内ボーラス（従来モデル）。赤の破線は血管豊富組織に沈着した不成功のブロック'
-    '（急速吸収）。緑の一点鎖線は血管乏しい組織に沈着した成功したブロック（緩徐吸収）。'
-    'オレンジの点線は混合沈着の部分的ブロック。水平の破線はCNSおよび心血管系毒性閾値。'
-    '薬物沈着の初期コンパートメントに応じたCmaxとTmaxの顕著な差異に注目。', italic=True
-)
-add_para('')
-add_para(
-    '図3. 状況依存性極量決定のための生理学的薬物動態（PBPK）シミュレーションの提案ワークフロー。'
-    '臨床評価（ステップ1）が初期コンパートメント選択（ステップ2）に情報を提供し、'
-    'PK-SimまたはMoBiによるPBPKシミュレーション（ステップ3）を指示し、'
-    'シナリオ依存性の極量推奨（ステップ4）を導く。', italic=True
-)
-add_para('')
-add_para(
-    '図4. 麻酔情報管理システム（AIMS）における投与経路適応型PKPD シミュレーションの概念的模式図。'
-    '局所麻酔薬が区域麻酔手技として投与記録されると、AIMSは標準的な3コンパートメントIVモデルから、'
-    'ブロック種別に特異的な吸収パラメータを持つデポ増強モデルに切り替える。'
-    '表示される予測血漿濃度曲線は実際の投与経路を反映し、累積用量と毒性リスクの'
-    'より正確な評価を臨床医に提供する。AIMS, 麻酔情報管理システム; PKPD, '
-    '薬物動態・薬力学; TCI, target-controlled infusion。', italic=True
+    '著者は原稿作成と編集にAI支援ツール（言語モデル）を使用した。'
+    '著者は本研究の内容、科学的正確性、完全性に全責任を負う。'
 )
 
-doc.add_page_break()
-
-# ===== REFERENCES =====
-add_heading_text('引用文献（References）', level=1)
-
-refs = [
-    '1. Rosenberg PH, Veering BT, Urmey WF. Maximum recommended doses of local anesthetics: a multifactorial concept. Reg Anesth Pain Med 2004; 29: 564\u201375.',
-    '2. El-Boghdadly K, Pawa A, Chin KJ. Local anesthetic systemic toxicity: current perspectives. Local Reg Anesth 2018; 11: 35\u201344.',
-    '3. Marsh B, White M, Morton N, Kenny GN. Pharmacokinetic model driven infusion of propofol in children. Br J Anaesth 1991; 67: 41\u20138.',
-    '4. Schnider TW, Minto CF, Gambus PL, et al. The influence of method of administration and covariates on the pharmacokinetics of propofol in adult volunteers. Anesthesiology 1998; 88: 1170\u201382.',
-    '5. Eleveld DJ, Colin P, Absalom AR, Struys MMRF. Pharmacokinetic\u2013pharmacodynamic model for propofol for broad application in anaesthesia and sedation. Br J Anaesth 2018; 120: 942\u201359.',
-    '6. Minto CF, Schnider TW, Egan TD, et al. Influence of age and gender on the pharmacokinetics and pharmacodynamics of remifentanil. Anesthesiology 1997; 86: 10\u201323.',
-    '7. Leite-Moreira AM, Correia A, Vale N, Mour\u00e3o JB. Pharmacokinetics in regional anesthesia. Curr Opin Anaesthesiol 2024; 37: 520\u20135.',
-    '8. Arthur GR, Covino BG. Pharmacokinetics of local anaesthetics. Bailli\u00e8re\u2019s Clin Anaesthesiol 1991; 5: 635\u201358.',
-    '9. De Cassai A, Dost B, Mormando G, Stecco C. Epinephrine, absorption, and local anaesthetic systemic toxicity: insights from continuous fascial block pharmacokinetic models. Br J Anaesth 2025; 135: 857\u201360.',
-    '10. Schwenk ES, Sneyd JR, Wu CL. The state of local anaesthetic systemic toxicity in 2025: the emergence of lidocaine as our next challenge. Br J Anaesth 2025; 135: 854\u20136.',
-    '11. Rahiri JL, Tuhoe J, Svirskis D, Lightfoot NJ, Lirk PB, Hill AG. Systematic review of the systemic concentrations of local anaesthetic after transversus abdominis plane block and rectus sheath block. Br J Anaesth 2017; 118: 517\u201326.',
-    '12. De Cassai A, Pasin L, Boscolo A, et al. Safety of local anesthetics for fascial plane blocks: a narrative review. J Clin Anesth 2022; 77: 110637.',
-    '13. Barrington MJ, Kluger R. Ultrasound guidance reduces the risk of local anesthetic systemic toxicity following peripheral nerve blockade. Reg Anesth Pain Med 2013; 38: 289\u201397.',
-    '14. Fettiplace MR, Weinberg G. The mechanisms underlying lipid resuscitation therapy. Reg Anesth Pain Med 2018; 43: 138\u201349.',
-    '15. Tucker GT, Mather LE. Clinical pharmacokinetics of local anaesthetic agents. Clin Pharmacokinet 1979; 4: 241\u201378.',
-    '16. Simon MJG, Veering BT. Factors affecting the pharmacokinetics and neural block characteristics after epidural administration of local anaesthetics. Eur J Pain 2010; 4: 209\u201318.',
-    '17. Burm AG, van der Meer AD, van Kleef JW, Zeijlmans PW, Groen K. Pharmacokinetics of the enantiomers of bupivacaine following intravenous administration of the racemate. Br J Clin Pharmacol 1994; 38: 125\u201329.',
-    '18. Gaudreault F, Bherer L, Bhatt DL, Bhatt HV, Bhatt HV. Modeling the anesthetic effect of ropivacaine after a femoral nerve block in orthopedic patients. Anesthesiology 2015; 122: 1010\u201320.',
-    '19. Ling J, Xu C, Tang L, Qiu L, Hu N. Comparison of the pharmacokinetic variations of different concentrations of ropivacaine used for serratus anterior plane block. Front Pharmacol 2025; 16: 1540606.',
-    '20. Kwa A, Sprung J, Van Guilder M, Jelliffe RW. A population pharmacokinetic model of epidural lidocaine in geriatric patients. Ther Drug Monit 2008; 30: 346\u201355.',
-    '21. Thompson MD, Beard DA. Physiologically-based pharmacokinetic tissue compartment model selection in drug development and risk assessment. J Pharm Sci 2012; 101: 424\u201335.',
-    '22. Jones HM, Rowland-Yeo K. Basic concepts in physiologically based pharmacokinetic modeling in drug discovery and development. CPT Pharmacometrics Syst Pharmacol 2013; 2: e63.',
-    '23. Lippert J, Burghaus R, Edginton A, et al. Open Systems Pharmacology Community\u2014an open access, open source, open science approach to modeling and simulation in pharmaceutical sciences. CPT Pharmacometrics Syst Pharmacol 2019; 8: 878\u201382.',
-    '24. Willmann S, Lippert J, Sevestre M, Solodenko J, Fois F, Schmitt W. PK-Sim\u00ae: a physiologically based pharmacokinetic \u2018whole-body\u2019 model. Biosilico 2003; 1: 121\u20134.',
-    '25. Open Systems Pharmacology. PK-Sim\u00ae Documentation: Formulations and Administration Protocols. Available at: https://docs.open-systems-pharmacology.org (accessed March 2026).',
-    '26. Gamb\u00fas PL, Troc\u00f3niz IF. Pharmacokinetic\u2013pharmacodynamic modelling in anaesthesia. Br J Clin Pharmacol 2015; 79: 72\u201384.',
-    '27. Hughes MA, Glass PS, Jacobs JR. Context-sensitive half-time in multicompartment pharmacokinetic models for intravenous anesthetic drugs. Anesthesiology 1992; 76: 334\u201341.',
-    '28. Pirri C, Torre DE, Stecco C. Fascial plane blocks: from microanatomy to clinical applications. Curr Opin Anaesthesiol 2024; 37: 526\u201332.',
-    '29. Sharma SK, Sonawane K, Mistry T. A narrative review on fascial plane blocks \u2013 Part A: Anatomical foundations and mechanistic insights. Indian J Anaesth 2026; 70: 127\u201336.',
-    '30. Niederalt C, Kuepfer L, Solodenko J, et al. A generic whole body physiologically based pharmacokinetic model for therapeutic proteins in PK-Sim. J Pharmacokinet Pharmacodyn 2018; 45: 235\u201357.',
-    '31. Gill KL, Gardner I, Li L, Jamei M. A bottom-up whole-body physiologically based pharmacokinetic model to mechanistically predict tissue distribution and the rate of subcutaneous absorption of therapeutic proteins. AAPS J 2016; 18: 156\u201370.',
-    '32. Ashraf MW, Uusalo P, Scheinin M, Saari TI. Population modelling of dexmedetomidine pharmacokinetics and haemodynamic effects after intravenous and subcutaneous administration. Clin Pharmacokinet 2020; 59: 1467\u201382.',
-    '33. Pepin XJH, Grant I, Wood JM. SubQ-Sim: a subcutaneous physiologically based biopharmaceutics model. Part 1: the injection and system parameters. Pharm Res 2023; 40: 2195\u2013214.',
-    '34. Silva DA, Le Merdy M, Mullin J, et al. Mechanistic modeling of intramuscular administration of a long-acting injectable accounting for tissue response at the depot site. AAPS J 2026; 28: 4.',
-    '35. De Cassai A, Bonvicini D, Correale C, et al. Histology of the fascial planes: a systematic review of the microstructural foundations of regional anesthesia. J Anesth Analg Crit Care 2026; 6: 5.',
-    '36. Winnie AP, Tay CH, Patel KP, Ramamurthy S, Durrani Z. Pharmacokinetics of local anesthetics during plexus blocks. Anesth Analg 1977; 56: 852\u201361.',
-    '37. Y\u00e1\u00f1ez JA, Remsberg CM, Sayre CL, Forrest ML, Davies NM. Flip-flop pharmacokinetics\u2014delivering a reversal of disposition: challenges and opportunities during drug development. Ther Deliv 2011; 2: 643\u201372.',
-    '38. Butiulca M, Farczadi L, Imre S, et al. LC-MS/MS assisted pharmacokinetic and tissue distribution study of ropivacaine and 3-OH-ropivacaine on rats after plane block anesthesia. Front Pharmacol 2025; 15: 1494646.',
-    '39. Osborne KW, MacFater WS, Anderson BJ, Svirskis D, Hill AG, Hannam JA. Pharmacokinetics of intraperitoneal lidocaine for sustained postoperative analgesia in adults. Eur J Drug Metab Pharmacokinet 2025.',
-    '40. Bettonte S, Berton M, Battegay M, Stader F, Marzolini C. Development of a physiologically-based pharmacokinetic model to simulate the pharmacokinetics of intramuscular antiretroviral drugs. CPT Pharmacometrics Syst Pharmacol 2024; 13: 781\u201394.',
-    '41. Dost B. Fascial plane blocks in the era of modern regional anesthesia: shaping the future of pain management. J Anesth Analg Crit Care 2025; 5: 49.',
-    '42. Enlund M. TCI: Target Controlled Infusion, or Totally Confused Infusion? Upsala J Med Sci 2008; 113: 161\u201370.',
-    '43. Vellinga R, Eleveld DJ, Struys MMRF, van den Berg JP. General purpose models for intravenous anesthetics, the next generation for target-controlled infusion and total intravenous anesthesia? Curr Opin Anaesthesiol 2023; 36: 602\u20137.',
-    '44. \u0160afr\u00e1nkov\u00e1 P, Bruthans J. Target-controlled infusion of propofol: a systematic review of recent results. J Med Syst 2025; 49: 54.',
-    '45. Sessler DI, Bao X, Leiman D, et al. A phase I study of the pharmacokinetics, pharmacodynamics, and safety of liposomal bupivacaine for sciatic nerve block in the popliteal fossa for bunionectomy. J Clin Pharmacol 2025; 65: 441\u201351.',
-    '46. Xu A, Ren A, Lee C. Pharmacokinetics of lidocaine infusion: optimal dosing and duration in ERAS protocol. medRxiv 2025.',
-    '47. Cascone S, Lamberti G, Titomanlio G, Piazza O. Pharmacokinetics of remifentanil: a three-compartmental modeling approach. Transl Med UniSa 2013; 7: 18\u201322.',
-    '48. Brainkart. Pharmacokinetics: compartment models. In: Clinical Anesthesiology: Clinical Pharmacology. Available at: https://www.brainkart.com (accessed March 2026).',
-    '49. Deranged Physiology. Single and multiple compartment models of drug distribution. Available at: https://derangedphysiology.com (accessed March 2026).',
-    '50. Holt A. Three compartment drug. In: An ABC of PK/PD. Open Education Alberta; 2023.',
-]
-
-for ref in refs:
-    add_para(ref)
-
-doc.add_page_break()
-
-# ===== INSERT FIGURES =====
-add_heading_text('図（Figures）', level=1)
-
-fig_dir = '/home/ubuntu/manuscript/figures'
-for fname, caption in [
-    ('figure1_compartment_models.png', '図1（Figure 1）'),
-    ('figure2_pk_simulation.png', '図2（Figure 2）'),
-    ('figure3_workflow.png', '図3（Figure 3）'),
-    ('figure4_aims.png', '図4（Figure 4）'),
-]:
-    fpath = os.path.join(fig_dir, fname)
-    if os.path.exists(fpath):
-        doc.add_paragraph(caption)
-        doc.add_picture(fpath, width=Inches(6.0))
-        doc.add_paragraph('')
-
-# Save
-out_path = '/home/ubuntu/manuscript/BJA_Manuscript_Japanese.docx'
+# --- Save ---
+out_dir = os.path.dirname(os.path.abspath(__file__))
+out_path = os.path.join(out_dir, 'RAPM_Manuscript_Japanese.docx')
 doc.save(out_path)
-print(f'Japanese manuscript saved to {out_path}')
+print(f'Saved: {out_path}')
