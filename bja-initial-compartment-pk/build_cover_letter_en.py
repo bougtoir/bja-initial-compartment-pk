@@ -126,7 +126,7 @@ add_para(
     'This manuscript is not under consideration elsewhere and has not been published '
     'previously (other than the preprint noted above). The author has no conflicts of '
     'interest to declare. AI-assisted tools were used for manuscript preparation, as '
-    'disclosed in the manuscript per BMJ policy.'
+    'disclosed in the manuscript per journal policy.'
 )
 
 add_para('')
